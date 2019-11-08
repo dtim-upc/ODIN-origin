@@ -5,11 +5,13 @@ import com.mongodb.client.MongoCursor;
 import eu.supersede.mdm.storage.db.mongo.MongoConnection;
 import eu.supersede.mdm.storage.db.mongo.models.GlobalGraphModel;
 import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
+import net.minidev.json.JSONObject;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -22,7 +24,7 @@ public class GlobalGraphRepository {
 
     @PostConstruct
     public void init() {
-        globalGraphCollection = MongoConnection.getInstance().getInstance().getDatabase().getCollection("globalGraphs", GlobalGraphModel.class);
+        globalGraphCollection = MongoConnection.getInstance().getDatabase().getCollection("globalGraphs", GlobalGraphModel.class);
     }
 
     public void create(String globalGraph){
@@ -34,6 +36,20 @@ public class GlobalGraphRepository {
         } catch (com.mongodb.MongoWriteException ex){
             //TODO: (Javier) Handle error when not able to write in db and check other exception throw by insertOne
         }
+    }
+
+    public JSONObject create(JSONObject globalGraphJsonObj){
+        globalGraphJsonObj.put("globalGraphID", UUID.randomUUID().toString().replace("-",""));
+
+        String namedGraph =
+                globalGraphJsonObj.getAsString("defaultNamespace").charAt(globalGraphJsonObj.getAsString("defaultNamespace").length()-1) == '/' ?
+                        globalGraphJsonObj.getAsString("defaultNamespace") : globalGraphJsonObj.getAsString("defaultNamespace") + "/";
+
+        globalGraphJsonObj.put("namedGraph", namedGraph+UUID.randomUUID().toString().replace("-",""));
+
+        create(globalGraphJsonObj.toJSONString());
+
+        return globalGraphJsonObj;
     }
 
     public GlobalGraphModel findByGlobalGraphID(String globalGraphID){

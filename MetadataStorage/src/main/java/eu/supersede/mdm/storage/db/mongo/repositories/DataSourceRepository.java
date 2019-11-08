@@ -22,7 +22,7 @@ public class DataSourceRepository {
 
     @PostConstruct
     public void init() {
-        dataSourceCollection = MongoConnection.getInstance().getInstance().getDatabase().getCollection("dataSources", DataSourceModel.class);
+        dataSourceCollection = MongoConnection.getInstance().getDatabase().getCollection("dataSources", DataSourceModel.class);
     }
 
     public List<DataSourceModel> findAll(){

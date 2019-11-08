@@ -21,7 +21,7 @@ public class UserRepository {
 
     @PostConstruct
     public void init() {
-        usersCollection = MongoConnection.getInstance().getInstance().getDatabase().getCollection("users", UserModel.class);
+        usersCollection = MongoConnection.getInstance().getDatabase().getCollection("users", UserModel.class);
     }
 
 

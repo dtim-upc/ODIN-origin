@@ -71,6 +71,7 @@ public class MongoConnection {
     }
 
     public void close() {
+        System.out.println("Closing MongoDB connection");
         LOGGER.info("Closing MongoDB connection");
         if (mongo != null) {
             try {

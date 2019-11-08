@@ -21,7 +21,7 @@ public class WrapperRepository {
 
     @PostConstruct
     public void init() {
-        wrapperCollection = MongoConnection.getInstance().getInstance().getDatabase().getCollection("wrappers", WrapperModel.class);
+        wrapperCollection = MongoConnection.getInstance().getDatabase().getCollection("wrappers", WrapperModel.class);
     }
 
     public List<WrapperModel> findAll(){

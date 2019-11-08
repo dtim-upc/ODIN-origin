@@ -18,7 +18,7 @@ public class LAVMappingRepository {
 
     @PostConstruct
     public void init() {
-        LAVCollection = MongoConnection.getInstance().getInstance().getDatabase().getCollection("LAVMappings", LAVMappingModel.class);
+        LAVCollection = MongoConnection.getInstance().getDatabase().getCollection("LAVMappings", LAVMappingModel.class);
     }
 
     public List<LAVMappingModel> findAll(){
