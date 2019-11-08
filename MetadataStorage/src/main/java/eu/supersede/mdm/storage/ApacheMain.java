@@ -1,5 +1,6 @@
 package eu.supersede.mdm.storage;
 
+import eu.supersede.mdm.storage.db.jena.JenaConnectionServlet;
 import eu.supersede.mdm.storage.db.mongo.MongoConnectionServlet;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
@@ -50,6 +51,7 @@ public class ApacheMain {
         context.addServlet(servlet, "/*");
 
         context.addEventListener(new MongoConnectionServlet());
+        context.addEventListener(new JenaConnectionServlet());
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
         contexts.addHandler(buildSwaggerUI());

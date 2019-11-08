@@ -33,6 +33,7 @@ public class Utils {
 
     public static Dataset copyOfTheDataset = null;
     public static Dataset getTDBDataset() {
+        //TODO: (JAVIER) get rid of this code when finished persistence layer
         if (copyOfTheDataset == null) {
             try {
                 return TDBFactory.createDataset(ConfigManager.getProperty("metadata_db_path") + "/"/*"BolsterMetadataStorage"*/ +
