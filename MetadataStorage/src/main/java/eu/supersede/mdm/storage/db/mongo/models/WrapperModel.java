@@ -16,6 +16,7 @@ public class WrapperModel {
     private String query;
     private String name;
     private List<WrapperAtributes> attributes;
+    private String LAVMappingID;
 
     public ObjectId getId() {
         return id;
@@ -71,5 +72,13 @@ public class WrapperModel {
 
     public void setAttributes(List<WrapperAtributes> attributes) {
         this.attributes = attributes;
+    }
+
+    public String getLAVMappingID() {
+        return LAVMappingID;
+    }
+
+    public void setLAVMappingID(String LAVMappingID) {
+        this.LAVMappingID = LAVMappingID;
     }
 }
