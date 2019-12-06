@@ -2,33 +2,21 @@ package eu.supersede.mdm.storage.resources;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.google.gson.Gson;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import eu.supersede.mdm.storage.util.ConfigManager;
-import eu.supersede.mdm.storage.util.RDFUtil;
-import net.minidev.json.JSONArray;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.parsers.OWLtoD3;
 import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.query.*;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.util.FileManager;
-import org.bson.Document;
-import eu.supersede.mdm.storage.parsers.OWLtoD3;
-import eu.supersede.mdm.storage.util.Utils;
 import scala.Tuple3;
 
-import javax.servlet.ServletContext;
+import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +26,8 @@ import java.util.UUID;
 @Path("metadataStorage")
 public class GraphResource {
 
+    @Inject
+    GraphOperations graphO;
     /**
      * Get the content of the artifact, i.e. the triples
      */
@@ -46,18 +36,15 @@ public class GraphResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response GET_graph(@PathParam("iri") String iri) {
         System.out.println("[GET /graph/"+iri);
-        Dataset dataset = Utils.getTDBDataset();
-        dataset.begin(ReadWrite.READ);
         String out = "";
-        try(QueryExecution qExec = QueryExecutionFactory.create("SELECT ?s ?p ?o ?g WHERE { GRAPH <"+iri+"> {?s ?p ?o} }",  dataset)) {
-            ResultSet rs = qExec.execSelect();
-            out = ResultSetFormatter.asXMLString(rs);
+
+        try{
+            out = graphO.selectTriplesFromGraphAsXML(iri);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok("Error: "+e.toString()).build();
         }
-        dataset.end();
-        dataset.close();
+
         JSONObject res = new JSONObject();
         res.put("rdf",out);
         return Response.ok(res.toJSONString()).build();
@@ -72,7 +59,7 @@ public class GraphResource {
     public Response GET_artifact_content_graphical(@PathParam("artifactType") String artifactType, @PathParam("iri") String iri) {
         System.out.println("[GET /graph/"+artifactType+"/"+iri+"/graphical");
         List<Tuple3<Resource,Property,Resource>> triples = Lists.newArrayList();
-        RDFUtil.runAQuery("SELECT * WHERE { GRAPH <"+iri+"> {?s ?p ?o} }",  iri).forEachRemaining(triple -> {
+        graphO.runAQuery("SELECT * WHERE { GRAPH <"+iri+"> {?s ?p ?o} }").forEachRemaining(triple -> {
             triples.add(new Tuple3<>(new ResourceImpl(triple.get("s").toString()),
                     new PropertyImpl(triple.get("p").toString()),new ResourceImpl(triple.get("o").toString())));
         });
@@ -85,10 +72,6 @@ public class GraphResource {
     @Consumes("text/plain")
     public Response POST_graph(@PathParam("iri") String iri, String RDF) {
         System.out.println("[POST /graph/"+iri);
-        Dataset dataset = Utils.getTDBDataset();
-        dataset.begin(ReadWrite.WRITE);
-        Model model = dataset.getNamedModel(iri);
-        OntModel ontModel = ModelFactory.createOntologyModel();
         /* Store RDF into a temporal file */
         String tempFileName = UUID.randomUUID().toString();
         String filePath = "";
@@ -100,12 +83,7 @@ public class GraphResource {
             e.printStackTrace();
             return Response.ok("Error: "+e.toString()).build();
         }
-        model.add(FileManager.get().readModel(ontModel, filePath));
-        model.commit();
-        model.close();
-        dataset.commit();
-        dataset.end();
-        dataset.close();
+        graphO.createGraphWithOntModel(iri,filePath);
         return Response.ok().build();
     }
 
@@ -113,7 +91,7 @@ public class GraphResource {
     @Consumes("text/plain")
     public Response POST_triple(@PathParam("iri") String iri, @PathParam("s") String s, @PathParam("p") String p, @PathParam("o") String o) {
         System.out.println("[POST /graph/"+iri+"/triple");
-        RDFUtil.addTriple(iri,s,p,o);
+        graphO.addTriple(iri,s,p,o);
         return Response.ok().build();
     }
 

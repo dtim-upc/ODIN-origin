@@ -1,11 +1,10 @@
 package eu.supersede.mdm.storage.parsers;
 
-import com.mongodb.MongoClient;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.mongo.models.GlobalGraphModel;
+import eu.supersede.mdm.storage.db.mongo.repositories.GlobalGraphRepository;
 import eu.supersede.mdm.storage.model.Namespaces;
 import eu.supersede.mdm.storage.model.metamodel.GlobalGraph;
-import eu.supersede.mdm.storage.util.MongoCollections;
-import eu.supersede.mdm.storage.util.RDFUtil;
-import eu.supersede.mdm.storage.util.Utils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -13,13 +12,19 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.bson.Document;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class ImportOWLtoGlobalGraph {
+
+    @Inject
+    GlobalGraphRepository globalGraphR;
+
+    @Inject
+    GraphOperations graphO;
 
     public void convert(String filePath, String name){
 
@@ -31,7 +36,7 @@ public class ImportOWLtoGlobalGraph {
         String defaultNamespace = "";
 
         List<Triple> triples = new ArrayList<>();
-        RDFUtil.runAQuery("SELECT * WHERE {?s ?p ?o FILTER (!isBlank(?s) && !isBlank(?o)) }  ", model).forEachRemaining(triple -> {
+        graphO.runAQuery("SELECT * WHERE {?s ?p ?o FILTER (!isBlank(?s) && !isBlank(?o)) }  ", model).forEachRemaining(triple -> {
             Triple t = new Triple(NodeFactory.createURI(triple.get("s").toString()),NodeFactory.createURI(triple.get("p").toString()),NodeFactory.createURI(triple.get("o").toString()));
             triples.add(t);
         });
@@ -73,19 +78,25 @@ public class ImportOWLtoGlobalGraph {
 
         defaultNamespace = defaultNamespace.charAt(defaultNamespace.length()-1) == '/' ?defaultNamespace : defaultNamespace + "/";
         String namedGraph = defaultNamespace+UUID.randomUUID().toString().replace("-","");
-        RDFUtil.loadModel(namedGraph,globalGraphModel);
+//        RDFUtil.loadModel(namedGraph,globalGraphModel);
+        graphO.loadModel(namedGraph,globalGraphModel);
         saveInMongo(defaultNamespace,namedGraph,name);
 
     }
 
     public void saveInMongo(String defaultNamespace,String namedGraph, String name){
 
-        MongoClient client = Utils.getMongoDBClient();
-        Document objGG = new Document("name", name);
-        objGG.put("globalGraphID", UUID.randomUUID().toString().replace("-",""));
+        GlobalGraphModel objGG = new GlobalGraphModel();
+        objGG.setName(name);
+        objGG.setGlobalGraphID(UUID.randomUUID().toString().replace("-",""));
+        objGG.setDefaultNamespace(defaultNamespace);
+        objGG.setNamedGraph(namedGraph);
+//        MongoClient client = Utils.getMongoDBClient();
+//        Document objGG = new Document("name", name);
+//        objGG.put("globalGraphID", UUID.randomUUID().toString().replace("-",""));
 
-        objGG.put("defaultNamespace", defaultNamespace);
-        objGG.put("namedGraph", namedGraph);
+//        objGG.put("defaultNamespace", defaultNamespace);
+//        objGG.put("namedGraph", namedGraph);
 
 
         ImportOWLtoWebVowl graphicalConverter = new ImportOWLtoWebVowl();
@@ -94,11 +105,13 @@ public class ImportOWLtoGlobalGraph {
         String vowlJson = graphicalConverter.convert(namedGraph,defaultNamespace);
         String graphicalG = "\" " + StringEscapeUtils.escapeJava(vowlJson) + "\"";
 
-        objGG.put("graphicalGraph", graphicalG);
+        objGG.setGraphicalGraph(graphicalG);
+//        objGG.put("graphicalGraph", graphicalG);
 
-        MongoCollections.getGlobalGraphCollection(client).insertOne(objGG);
-        client.close();
-
+        globalGraphR.create(objGG);
+//        MongoCollections.getGlobalGraphCollection(client).insertOne(objGG);
+//        client.close();
+//
     }
 
 }

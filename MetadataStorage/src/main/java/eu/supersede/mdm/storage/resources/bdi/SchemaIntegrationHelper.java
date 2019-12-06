@@ -1,10 +1,15 @@
 package eu.supersede.mdm.storage.resources.bdi;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import eu.supersede.mdm.storage.bdi.extraction.Namespaces;
-import eu.supersede.mdm.storage.util.*;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.mongo.repositories.DataSourceRepository;
+import eu.supersede.mdm.storage.db.mongo.repositories.IntegratedDataSourcesRepository;
+import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
+import eu.supersede.mdm.storage.util.BdiSQLiteUtils;
+import eu.supersede.mdm.storage.util.ConfigManager;
+import eu.supersede.mdm.storage.util.RDFUtil;
+import eu.supersede.mdm.storage.util.Utils;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
@@ -15,8 +20,8 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.bson.Document;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -25,19 +30,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static com.mongodb.client.model.Filters.eq;
-
 /**
  * Created by Kashif-Rabbani in June 2019
  */
 public class SchemaIntegrationHelper {
     private static final Logger LOGGER = Logger.getLogger(SchemaIntegrationHelper.class.getName());
 
+    @Inject
+    IntegratedDataSourcesRepository integratedDSR;
+
+    @Inject
+    DataSourceRepository dataSourceR;
+
+    @Inject
+    GraphOperations graphO;
+
     public SchemaIntegrationHelper() {
     }
 
     void processAlignment(JSONObject objBody, String integratedIRI, Resource s, Resource p, String query, String[] checkIfQueryContainsResult, String integrationType) {
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + query, integratedIRI).forEachRemaining(triple -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + query).forEachRemaining(triple -> {
             //System.out.println(triple.get("o") + " oo " + triple.get("oo"));
             checkIfQueryContainsResult[0] = "Query Returned Result > 0";
 
@@ -170,23 +182,18 @@ public class SchemaIntegrationHelper {
 
         dataSourcesArray.add(ds2);
 
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCollection collection = MongoCollections.getIntegratedDataSourcesCollection(client);
         //System.out.println("Mongo Collection About to Upadte: ");
         String newDataSourceID = integratedDataSourceInfo.getAsString("dataSourceID") + "-" + dataSource2Info.getAsString("dataSourceID");
 
         //System.out.println("OLD DS ID: " + integratedDataSourceInfo.getAsString("dataSourceID"));
         //System.out.println("NEW DS ID: " + newDataSourceID);
 
-        collection.updateOne(eq("dataSourceID", integratedDataSourceInfo.getAsString("dataSourceID")), new Document("$set", new Document("dataSourceID", newDataSourceID)));
-        collection.updateOne(eq("dataSourceID", newDataSourceID), new Document("$set", new Document("schema_iri", Namespaces.G.val() + integratedDataSourceInfo.getAsString("dataSourceID") + "-" + dataSource2Info.getAsString("dataSourceID"))));
-        collection.updateOne(eq("dataSourceID", newDataSourceID), new Document("$set", new Document("graphicalGraph", "\" " + StringEscapeUtils.escapeJava(vowlObj.getAsString("vowlJson")) + "\"")));
-        //collection.updateOne(eq("dataSourceID", newDataSourceID), new Document("$set", new Document("integratedVowlJsonFilePath", vowlObj.getAsString("vowlJsonFilePath"))));
-        collection.updateOne(eq("dataSourceID", newDataSourceID), new Document("$set", new Document("parsedFileAddress", integratedModelFileName)));
-        collection.updateOne(eq("dataSourceID", newDataSourceID), new Document("$set", new Document("dataSources", dataSourcesArray)));
-        collection.updateOne(eq("dataSourceID", newDataSourceID), new Document("$set", new Document("name", integratedDataSourceInfo.getAsString("name").replaceAll(" ", "") + dataSource2Info.getAsString("name").replaceAll(" ", ""))));
-
-        client.close();
+        integratedDSR.updateByDataSourceID(integratedDataSourceInfo.getAsString("dataSourceID"),"dataSourceID", newDataSourceID);
+        integratedDSR.updateByDataSourceID(newDataSourceID,"schema_iri", Namespaces.G.val() + integratedDataSourceInfo.getAsString("dataSourceID") + "-" + dataSource2Info.getAsString("dataSourceID"));
+        integratedDSR.updateByDataSourceID(newDataSourceID,"graphicalGraph", "\" " + StringEscapeUtils.escapeJava(vowlObj.getAsString("vowlJson")) + "\"");
+        integratedDSR.updateByDataSourceID(newDataSourceID,"parsedFileAddress", integratedModelFileName);
+        integratedDSR.updateByDataSourceID(newDataSourceID,"dataSources", dataSourcesArray);
+        integratedDSR.updateByDataSourceID(newDataSourceID,"name", integratedDataSourceInfo.getAsString("name").replaceAll(" ", "") + dataSource2Info.getAsString("name").replaceAll(" ", ""));
     }
 
     String integrateTDBDatasets(JSONObject dataSource1Info, JSONObject dataSource2Info) {
@@ -231,50 +238,39 @@ public class SchemaIntegrationHelper {
     }
 
     public String getDataSourceInfo(String dataSourceId) {
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCursor<Document> cursor = MongoCollections.getDataSourcesCollection(client).
-                find(new Document("dataSourceID", dataSourceId)).iterator();
-        return MongoCollections.getMongoObject(client, cursor);
+
+        return UtilsMongo.ToJsonString(dataSourceR.findByDataSourceID(dataSourceId));
     }
 
     public String getIntegratedDataSourceInfo(String integratedDataSourceId) {
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCursor<Document> cursor = MongoCollections.getIntegratedDataSourcesCollection(client).
-                find(new Document("dataSourceID", integratedDataSourceId)).iterator();
-        return MongoCollections.getMongoObject(client, cursor);
+
+        return UtilsMongo.ToJsonString(integratedDSR.findByDataSourceID(integratedDataSourceId));
     }
 
     private void addIntegratedDataSourceInfoAsMongoCollection(JSONObject objBody) {
         LOGGER.info("Successfully Added to MongoDB");
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCollections.getIntegratedDataSourcesCollection(client).insertOne(Document.parse(objBody.toJSONString()));
-        client.close();
+
+        //TODO: (javier) check if works
+        integratedDSR.create(objBody.toJSONString());
     }
 
-    static void updateIntegratedDataSourceInfo(String iri, JSONObject vowlObj) {
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCollection collection = MongoCollections.getIntegratedDataSourcesCollection(client);
-        collection.updateMany(eq("integratedDataSourceID", iri), new Document("$set", new Document("graphicalGraph", "\" " + StringEscapeUtils.escapeJava(vowlObj.getAsString("vowlJson")) + "\"")));
-        //collection.updateMany(eq("integratedDataSourceID", iri), new Document("$set", new Document("integratedVowlJsonFileName", vowlObj.getAsString("vowlJsonFileName"))));
-        client.close();
-    }
+
 
     public void deleteDataSourceInfo(String dataSourceID, String collectionType) {
-        MongoClient client = Utils.getMongoDBClient();
+
         MongoCollection collection = null;
         if (collectionType.equals("INTEGRATED")) {
-            collection = MongoCollections.getIntegratedDataSourcesCollection(client);
+            integratedDSR.deleteByDataSourceID(dataSourceID);
         }
         if (collectionType.equals("DATA-SOURCE")) {
-            collection = MongoCollections.getDataSourcesCollection(client);
+            dataSourceR.deleteByDataSourceID(dataSourceID);
         }
-        collection.deleteOne(eq("dataSourceID", dataSourceID));
-        client.close();
+
     }
 
     public List<String> getSparqlQueryResult(String namedGraph, String query) {
         List<String> temp = new ArrayList<>();
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + query, namedGraph).forEachRemaining(triple -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + query).forEachRemaining(triple -> {
             temp.add(triple.get("p").toString());
         });
         return temp;

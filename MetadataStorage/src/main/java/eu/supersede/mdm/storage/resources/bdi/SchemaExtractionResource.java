@@ -1,35 +1,31 @@
 package eu.supersede.mdm.storage.resources.bdi;
 
 import com.google.gson.Gson;
-import com.mongodb.MongoClient;
 import eu.supersede.mdm.storage.bdi.extraction.CsvSchemaExtractor;
 import eu.supersede.mdm.storage.bdi.extraction.JsonSchemaExtractor;
 import eu.supersede.mdm.storage.bdi.extraction.XmlSchemaExtractor;
 import eu.supersede.mdm.storage.bdi.extraction.rdb.MySqlDB;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.mongo.repositories.DataSourceRepository;
 import eu.supersede.mdm.storage.model.metamodel.SourceGraph;
-import eu.supersede.mdm.storage.util.MongoCollections;
 import eu.supersede.mdm.storage.util.Utils;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.ReadWrite;
-import org.apache.jena.rdf.model.Model;
-import org.bson.Document;
+import org.apache.log4j.Logger;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-//import java.util.logging.Logger;
-import org.apache.log4j.*;
-
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+//import java.util.logging.Logger;
 
 /**
  * Created by Kashif-Rabbani in June 2019
@@ -37,6 +33,12 @@ import java.time.LocalDateTime;
 @Path("metadataStorage")
 public class SchemaExtractionResource {
     private static final Logger LOGGER = Logger.getLogger(SchemaExtractionResource.class.getName());
+
+    @Inject
+    DataSourceRepository dataSourceR;
+
+    @Inject
+    GraphOperations graphO;
 
     @POST
     @Path("jsonSchema/")
@@ -248,21 +250,22 @@ public class SchemaExtractionResource {
     }
 
     private void addDataSourceInfoAsMongoCollection(JSONObject objBody) {
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCollections.getDataSourcesCollection(client).insertOne(Document.parse(objBody.toJSONString()));
-        client.close();
+        dataSourceR.create(objBody);
+//        MongoClient client = Utils.getMongoDBClient();
+//        MongoCollections.getDataSourcesCollection(client).insertOne(Document.parse(objBody.toJSONString()));
+//        client.close();
     }
 
     private void addExtractedSchemaIntoTDBStore(String iri, String outputFilePath) {
-        Dataset dataset = Utils.getTDBDataset();
-        dataset.begin(ReadWrite.WRITE);
-        Model model = dataset.getNamedModel(iri);
-        //OntModel ontModel = ModelFactory.createOntologyModel();
-        model.read(outputFilePath);
-        model.commit();
-        model.close();
-        dataset.commit();
-        dataset.end();
-        dataset.close();
+//        Dataset dataset = Utils.getTDBDataset();
+//        dataset.begin(ReadWrite.WRITE);
+//        Model model = dataset.getNamedModel(iri);
+//        model.read(outputFilePath);
+//        model.commit();
+//        model.close();
+//        dataset.commit();
+//        dataset.end();
+//        dataset.close();
+        graphO.createGraph(iri,outputFilePath);
     }
 }

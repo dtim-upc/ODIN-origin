@@ -2,8 +2,6 @@ package eu.supersede.mdm.storage.model.metamodel;
 
 import eu.supersede.mdm.storage.model.Namespaces;
 
-import javax.naming.Name;
-
 /**
  * Created by snadal on 6/06/17.
  */

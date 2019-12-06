@@ -3,12 +3,15 @@ package eu.supersede.mdm.storage.parsers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import eu.supersede.mdm.storage.model.metamodel.*;
+import eu.supersede.mdm.storage.model.metamodel.GlobalGraph;
+import eu.supersede.mdm.storage.model.metamodel.Mappings;
+import eu.supersede.mdm.storage.model.metamodel.Metamodel;
+import eu.supersede.mdm.storage.model.metamodel.SourceGraph;
+import eu.supersede.mdm.storage.util.NamespaceFiles;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import eu.supersede.mdm.storage.util.NamespaceFiles;
 import scala.Tuple3;
 
 import java.util.List;

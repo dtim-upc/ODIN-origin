@@ -1,7 +1,5 @@
 package eu.supersede.mdm.storage.parsers.models;
 
-import java.util.List;
-
 public class ClassAttribute {
 
     String id;

@@ -1,6 +1,7 @@
 package eu.supersede.mdm.storage.parsers;
 
 import com.google.gson.Gson;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.parsers.models.*;
 import eu.supersede.mdm.storage.util.RDFUtil;
 import org.apache.jena.graph.Triple;
@@ -8,11 +9,15 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class OWLtoWebVOWL {
+
+    @Inject
+    GraphOperations graphO;
 
     String prefix = "G";
     String namespace = "";
@@ -54,15 +59,15 @@ public class OWLtoWebVOWL {
     public String convert(String graphIRI) {
 
         List<Triple> triples = new ArrayList<>();
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + graphIRI + "> { ?s ?p ?o . FILTER NOT EXISTS {?s G:sameAs ?o .}} }", graphIRI).forEachRemaining(res -> {
+        //TODO: (javier) create method to extract list
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + graphIRI + "> { ?s ?p ?o . FILTER NOT EXISTS {?s G:sameAs ?o .}} }").forEachRemaining(res -> {
             triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(),
                     new PropertyImpl(res.get("p").toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
         });
         /*Hiding the sameAs features from the Graphical Global Graph*/
-        //List<Triple> triplesToBeRemoved = new ArrayList<>();
         HashMap<Triple, String> triplesHashMap = new HashMap<>();
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + " SELECT * WHERE { GRAPH <" + graphIRI + "> " +
-                "{  ?s G:sameAs ?o . ?o a ?x.  } }", graphIRI).forEachRemaining(res -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT * WHERE { GRAPH <" + graphIRI + "> " +
+                "{  ?s G:sameAs ?o . ?o a ?x.  } }").forEachRemaining(res -> {
             //triplesToBeRemoved.add(new Triple(new ResourceImpl(res.get("o").toString()).asNode(), RDF.type.asNode(), new ResourceImpl(res.get("x").toString()).asNode()));
             triplesHashMap.put(new Triple(new ResourceImpl(res.get("o").toString()).asNode(), RDF.type.asNode(), new ResourceImpl(res.get("x").toString()).asNode()), "");
         });

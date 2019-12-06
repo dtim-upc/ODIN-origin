@@ -6,10 +6,9 @@ import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 
-import java.nio.file.Files;
 import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 public class PlainText_Wrapper extends Wrapper {

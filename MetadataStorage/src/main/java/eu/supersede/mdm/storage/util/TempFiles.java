@@ -1,12 +1,9 @@
 package eu.supersede.mdm.storage.util;
 
 import com.google.common.io.Files;
-//import javafx.util.Pair; Use of this library gives compilation error because javafx is no longer a part of Java JDK
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
-import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -15,6 +12,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+//import javafx.util.Pair; Use of this library gives compilation error because javafx is no longer a part of Java JDK
 
 /**
  * Created by snadal on 24/11/16.

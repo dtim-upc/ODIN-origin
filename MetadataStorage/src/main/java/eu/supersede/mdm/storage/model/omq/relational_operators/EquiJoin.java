@@ -2,11 +2,9 @@ package eu.supersede.mdm.storage.model.omq.relational_operators;
 
 import com.google.common.collect.Maps;
 import eu.supersede.mdm.storage.model.Namespaces;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Objects;
 
 public class EquiJoin extends RelationalOperator {
 

@@ -1,4 +1,4 @@
-package eu.supersede.mdm.storage.service.impl.model;
+package eu.supersede.mdm.storage.service.model;
 
 public class LavObj{
     String LAVMappingID;

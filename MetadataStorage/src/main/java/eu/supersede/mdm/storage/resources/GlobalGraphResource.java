@@ -1,33 +1,22 @@
 package eu.supersede.mdm.storage.resources;
 
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.db.mongo.models.GlobalGraphModel;
+import eu.supersede.mdm.storage.db.mongo.models.fields.GlobalGraphMongo;
 import eu.supersede.mdm.storage.db.mongo.repositories.GlobalGraphRepository;
 import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
-import eu.supersede.mdm.storage.model.Namespaces;
-import eu.supersede.mdm.storage.model.metamodel.GlobalGraph;
 import eu.supersede.mdm.storage.parsers.ImportOWLtoGlobalGraph;
-import eu.supersede.mdm.storage.service.impl.DeleteGlobalGraphServiceImpl;
-import eu.supersede.mdm.storage.service.impl.UpdateGlobalGraphServiceImpl;
-import eu.supersede.mdm.storage.util.MongoCollections;
-import eu.supersede.mdm.storage.util.RDFUtil;
-import eu.supersede.mdm.storage.util.Utils;
+import eu.supersede.mdm.storage.service.GlobalGraphService;
 import eu.supersede.mdm.storage.validator.GlobalGraphValidator;
 import io.swagger.annotations.*;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import org.bson.Document;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -45,6 +34,9 @@ public class GlobalGraphResource {
     @Inject
     GlobalGraphRepository globalGraphR;
 
+    @Inject
+    GraphOperations graphO;
+
     @ApiOperation(value = "Gets all global graphs registered",produces = MediaType.TEXT_PLAIN)
     @ApiResponses(value = {@ApiResponse(code = 200, message = "OK")})
     @GET
@@ -54,7 +46,6 @@ public class GlobalGraphResource {
     public Response GET_globalGraph() {
         LOGGER.info("[GET /GET_globalGraph/]");
 
-        //TODO: (Javier) test when collection is empty
         String json = UtilsMongo.serializeListJsonAsString(globalGraphR.findAll());
         return Response.ok(json).build();
     }
@@ -106,11 +97,7 @@ public class GlobalGraphResource {
             @PathParam("namedGraph") String namedGraph) {
 
         LOGGER.info("[GET /globalGraph/features/] namedGraph = "+namedGraph);
-        JSONArray features = new JSONArray();
-        String SPARQL = "SELECT ?f WHERE { GRAPH <"+namedGraph+"> { ?f <"+Namespaces.rdf.val()+"type> <"+GlobalGraph.FEATURE.val()+"> } }";
-        RDFUtil.runAQuery(SPARQL,namedGraph).forEachRemaining(t -> {
-            features.add(t.get("f").asNode().getURI());
-        });
+        JSONArray features = graphO.getFeaturesFromGraph(namedGraph);
         return Response.ok(features.toJSONString()).build();
     }
 
@@ -126,13 +113,7 @@ public class GlobalGraphResource {
             @PathParam("namedGraph") String namedGraph) {
 
         LOGGER.info("[GET /globalGraph/features/] namedGraph = "+namedGraph);
-        JSONObject featureConcept = new JSONObject();
-        String SPARQL = "SELECT ?c ?f WHERE { GRAPH <"+namedGraph+"> { ?c <"+GlobalGraph.HAS_FEATURE.val()+"> ?f } }";
-        RDFUtil.runAQuery(SPARQL,namedGraph).forEachRemaining(t -> {
-
-            featureConcept.put(t.get("f").asNode().getURI(), t.get("c").asNode().getURI());
-//            features.add(featureConcept);
-        });
+        JSONObject featureConcept = graphO.getFeaturesWithConceptFromGraph(namedGraph);
         return Response.ok(featureConcept.toJSONString()).build();
     }
 
@@ -150,15 +131,7 @@ public class GlobalGraphResource {
         validator.validateGeneralBody(body,"POST /globalGraph");
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
 
-        objBody.put("globalGraphID", UUID.randomUUID().toString().replace("-",""));
-
-        String namedGraph =
-                objBody.getAsString("defaultNamespace").charAt(objBody.getAsString("defaultNamespace").length()-1) == '/' ?
-                objBody.getAsString("defaultNamespace") : objBody.getAsString("defaultNamespace") + "/";
-
-        objBody.put("namedGraph", namedGraph+UUID.randomUUID().toString().replace("-",""));
-
-        globalGraphR.create(objBody.toJSONString());
+        globalGraphR.create(objBody);
 
         return Response.ok(objBody.toJSONString()).build();
     }
@@ -193,7 +166,7 @@ public class GlobalGraphResource {
         LOGGER.info("[POST /globalGraph/"+namedGraph+"/triple] body = "+body);
         validator.validateBodyTriples(body,"POST /globalGraph/"+namedGraph+"/triple");
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
-        RDFUtil.addTriple(namedGraph,objBody.getAsString("s"),objBody.getAsString("p"),objBody.getAsString("o"));
+        graphO.addTriple(namedGraph,objBody);
         return Response.ok().build();
     }
 
@@ -210,10 +183,10 @@ public class GlobalGraphResource {
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
         JSONObject objMod = (JSONObject) objBody.get("modified");
         if(objMod.getAsString("isModified").equals("true")){
-            UpdateGlobalGraphServiceImpl u = new UpdateGlobalGraphServiceImpl();
+            GlobalGraphService u = new GlobalGraphService();
             u.updateTriples(objMod,namedGraph);
         }else{
-            RDFUtil.loadTTL(namedGraph,objBody.getAsString("ttl"));
+            graphO.loadTTL(namedGraph,objBody.getAsString("ttl"));
         }
         return Response.ok().build();
     }
@@ -227,13 +200,8 @@ public class GlobalGraphResource {
     public Response POST_graphicalGraph(@PathParam("globalGraphID") String globalGraphID, String body) {
         LOGGER.info("[POST /globalGraph/"+globalGraphID+"/graphicalGraph");
         validator.validateGraphicalGraphBody(body,"POST /globalGraph/"+globalGraphID+"/graphicalGraph");
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCollection<Document> globalGraphCollection = MongoCollections.getGlobalGraphCollection(client);
-        globalGraphCollection.findOneAndUpdate(
-                new Document().append("globalGraphID",globalGraphID),
-                new Document().append("$set", new Document().append("graphicalGraph",body))
-        );
-        client.close();
+        globalGraphR.updateByGlobalGraphID(globalGraphID, GlobalGraphMongo.FIELD_graphicalGraph.val(),body);
+
         return Response.ok().build();
     }
 
@@ -246,7 +214,7 @@ public class GlobalGraphResource {
     public Response DELETE_nodeGlobalGraph(@PathParam("namedGraph") String namedGraph, String body) {
         LOGGER.info("[DELETE /globalGraph/ "+namedGraph+" /node");
 
-        DeleteGlobalGraphServiceImpl del = new DeleteGlobalGraphServiceImpl();
+        GlobalGraphService del = new GlobalGraphService();
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
         del.deleteNode(namedGraph,objBody.getAsString("iri"));
         return Response.ok().build();
@@ -261,7 +229,7 @@ public class GlobalGraphResource {
     public Response DELETE_propertyGlobalGraph(@PathParam("namedGraph") String namedGraph, String body) {
         LOGGER.info("[DELETE /globalGraph/ "+namedGraph+" /property");
 
-        DeleteGlobalGraphServiceImpl del = new DeleteGlobalGraphServiceImpl();
+        GlobalGraphService del = new GlobalGraphService();
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
         del.deleteProperty(namedGraph,objBody.getAsString("sIRI"),objBody.getAsString("pIRI"),objBody.getAsString("oIRI"));
         return Response.ok().build();
@@ -275,29 +243,12 @@ public class GlobalGraphResource {
     public Response DELETE_GlobalGraph(@PathParam("globalGraphID") String globalGraphID) {
         LOGGER.info("[DELETE /globalGraph/ "+globalGraphID);
 
-        DeleteGlobalGraphServiceImpl del = new DeleteGlobalGraphServiceImpl();
+        GlobalGraphService del = new GlobalGraphService();
         del.deleteGlobalGraph(globalGraphID);
         return Response.ok().build();
     }
 
-//    @ApiOperation(value = "Delete property from the global graph",consumes = MediaType.TEXT_PLAIN)
-//    @ApiResponses(value ={
-//            @ApiResponse(code = 200, message = "OK"),
-//            @ApiResponse(code = 409, message = "property cannot be deleted")})
-//    @DELETE @Path("globalGraph/{globalGraphID}/property")
-//    @Consumes("text/plain")
-//    public Response DELETE_propertyGlobalGraph(@PathParam("globalGraphID") String globalGraphID, String body) {
-//        LOGGER.info("[DELETE /globalGraph/"+globalGraphID+"/property");
-//        validator.validateGraphicalGraphBody(body,"POST /globalGraph/"+globalGraphID+"/graphicalGraph");
-//        MongoClient client = Utils.getMongoDBClient();
-//        MongoCollection<Document> globalGraphCollection = MongoCollections.getGlobalGraphCollection(client);
-//        globalGraphCollection.findOneAndUpdate(
-//                new Document().append("globalGraphID",globalGraphID),
-//                new Document().append("$set", new Document().append("graphicalGraph",body))
-//        );
-//        client.close();
-//        return Response.ok().build();
-//    }
+
 
 /*
     @POST

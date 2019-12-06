@@ -1,35 +1,23 @@
 package eu.supersede.mdm.storage.resources;
 
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.db.mongo.models.DataSourceModel;
 import eu.supersede.mdm.storage.db.mongo.repositories.DataSourceRepository;
 import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
 import eu.supersede.mdm.storage.model.Namespaces;
 import eu.supersede.mdm.storage.model.metamodel.SourceGraph;
 import eu.supersede.mdm.storage.model.omq.wrapper_implementations.SQL_Wrapper;
-import eu.supersede.mdm.storage.parsers.OWLtoD3;
-import eu.supersede.mdm.storage.service.impl.DeleteDataSourceServiceImpl;
-import eu.supersede.mdm.storage.service.impl.DeleteWrapperServiceImpl;
-import eu.supersede.mdm.storage.util.ConfigManager;
-import eu.supersede.mdm.storage.util.MongoCollections;
-import eu.supersede.mdm.storage.util.RDFUtil;
-import eu.supersede.mdm.storage.util.Utils;
+import eu.supersede.mdm.storage.service.DataSourceService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import org.bson.Document;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -43,6 +31,9 @@ public class DataSourceResource {
     @Inject
     DataSourceRepository dataSourceR;
 
+    @Inject
+    GraphOperations graphO;
+
     @GET
     @Path("dataSource/")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -50,7 +41,6 @@ public class DataSourceResource {
     public Response GET_dataSource() {
         System.out.println("[GET /GET_dataSource/]");
 
-        //TODO: (Javier) test when collection is empty
         String json = UtilsMongo.serializeListJsonAsString(dataSourceR.findAll());
         return Response.ok(json).build();
     }
@@ -74,18 +64,13 @@ public class DataSourceResource {
     public Response POST_dataSource(String body) {
         System.out.println("[POST /dataSource/] body = " + body);
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
-        String dsName = objBody.getAsString("name").trim().replace(" ","");
-        String iri = SourceGraph.DATA_SOURCE.val()+"/"+dsName;
-        //Save metadata
-        objBody.put("dataSourceID", UUID.randomUUID().toString().replace("-",""));
-        objBody.put("iri", iri);
-        objBody.put("bootstrappingType", "manual");
 
-        dataSourceR.create(objBody.toJSONString());
+        objBody = dataSourceR.create(objBody);
 
-        RDFUtil.addTriple(iri, iri, Namespaces.rdf.val()+"type", SourceGraph.DATA_SOURCE.val());
+        graphO.addTriple(objBody.getAsString("iri"), objBody.getAsString("iri"),
+                Namespaces.rdf.val()+"type", SourceGraph.DATA_SOURCE.val());
 
-        objBody.put("rdf",RDFUtil.getRDFString(iri));
+        objBody.put("rdf",graphO.getRDFString(objBody.getAsString("iri")));
 
         return Response.ok(objBody.toJSONString()).build();
     }
@@ -113,7 +98,7 @@ public class DataSourceResource {
     @Consumes("text/plain")
     public Response DELETE_DataSourceByID(@PathParam("dataSourceID") String dataSourceID) {
         LOGGER.info("[DELETE /dataSource/ "+dataSourceID);
-        DeleteDataSourceServiceImpl del = new DeleteDataSourceServiceImpl();
+        DataSourceService del = new DataSourceService();
         del.delete(dataSourceID);
         return Response.ok().build();
     }

@@ -3,12 +3,8 @@ package eu.supersede.mdm.storage;
 //import org.eclipse.jetty.server.Server;
 //import org.eclipse.jetty.servlet.ServletContextHandler;
 //import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
-import javax.ws.rs.core.Application;
-import java.io.IOException;
-import java.net.URI;
+import org.glassfish.jersey.server.ResourceConfig;
 
 /**
  * Created by snadal on 29/04/16.

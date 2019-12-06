@@ -1,11 +1,12 @@
 package eu.supersede.mdm.storage.bdi.alignment;
 
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.util.ConfigManager;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.jena.rdf.model.Resource;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,6 +18,10 @@ import java.util.stream.Collectors;
 
 
 public class Finder {
+
+    @Inject
+    GraphOperations graphO;
+
     private String iriA = "";
     private String iriB = "";
     private List<Resource> propertiesA = new ArrayList<>();
@@ -113,13 +118,14 @@ public class Finder {
         String getProperties = " SELECT * WHERE { GRAPH <" + iri + "> { ?property rdfs:domain ?domain; rdfs:range ?range . FILTER NOT EXISTS {?range rdf:type rdfs:Class.}} }";
         List<Resource> properties = new ArrayList<>();
 
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + getProperties, iri).forEachRemaining(triple -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + getProperties).forEachRemaining(triple -> {
             //System.out.print(triple.get("property") + "\t");
             //System.out.print(triple.get("domain") + "\t");
             //System.out.print(triple.get("range") + "\n");
             //System.out.println(triple.get("property"));
             properties.add(triple.getResource("property"));
         });
+
         return properties;
     }
 }

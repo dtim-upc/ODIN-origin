@@ -2,12 +2,15 @@ package eu.supersede.mdm.storage.resources;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mongodb.MongoClient;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.mongo.models.DataSourceModel;
+import eu.supersede.mdm.storage.db.mongo.models.WrapperModel;
+import eu.supersede.mdm.storage.db.mongo.models.fields.WrapperMongo;
+import eu.supersede.mdm.storage.db.mongo.repositories.DataSourceRepository;
+import eu.supersede.mdm.storage.db.mongo.repositories.WrapperRepository;
 import eu.supersede.mdm.storage.model.omq.ConjunctiveQuery;
 import eu.supersede.mdm.storage.model.omq.QueryRewriting_EdgeBased;
 import eu.supersede.mdm.storage.model.omq.relational_operators.Wrapper;
-import eu.supersede.mdm.storage.util.MongoCollections;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import eu.supersede.mdm.storage.util.SQLiteUtils;
 import eu.supersede.mdm.storage.util.Utils;
 import net.minidev.json.JSONArray;
@@ -18,9 +21,15 @@ import org.apache.jena.query.ReadWrite;
 import org.bson.Document;
 import scala.Tuple3;
 
-import javax.ws.rs.*;
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +37,15 @@ import java.util.stream.Collectors;
  */
 @Path("metadataStorage")
 public class OMQResource {
+
+    @Inject
+    WrapperRepository wrapperR;
+
+    @Inject
+    DataSourceRepository dataSourceR;
+
+    @Inject
+    GraphOperations graphO;
 
     @POST @Path("omq/fromGraphicalToSPARQL")
     @Consumes("text/plain")
@@ -91,7 +109,7 @@ public class OMQResource {
 
 
         JSONObject out = new JSONObject();
-        out.put("ra", RDFUtil.nn(UCQ.stream().map(cq -> cq.toString()).collect(Collectors.joining("\nU\n"))));
+        out.put("ra", graphO.nn(UCQ.stream().map(cq -> cq.toString()).collect(Collectors.joining("\nU\n"))));
 
         T.abort();
         T.close();
@@ -102,9 +120,11 @@ public class OMQResource {
         JSONArray wrappers = new JSONArray();
         UCQ.forEach(q -> {
             q.getWrappers().forEach(op -> {
-                String wrapperID = MongoCollections.getWrappersCollection(Utils.getMongoDBClient()).find(
-                           new Document("iri",((Wrapper)op).getWrapper())
-                ).first().getString("wrapperID");
+//                String wrapperID = MongoCollections.getWrappersCollection(Utils.getMongoDBClient()).find(
+//                           new Document("iri",((Wrapper)op).getWrapper())
+//                ).first().getString("wrapperID");
+
+                String wrapperID = wrapperR.findByField(WrapperMongo.FIELD_IRI.val(),((Wrapper)op).getWrapper()).getWrapperID();
 
                 wrapperIriToID.putIfAbsent(((Wrapper)op).getWrapper(),wrapperID);
                 wrappers.add(wrapperID);
@@ -130,12 +150,12 @@ public class OMQResource {
             //Now do the sorting
             List<String> projections = Lists.newArrayList(withoutDuplicates);//Lists.newArrayList(q.getProjections());
             projections.sort(Comparator.comparingInt(s -> listOfFeatures.indexOf(QueryRewriting_EdgeBased.featuresPerAttribute.get(s))));
-            projections.forEach(proj -> select.append("\""+RDFUtil.nn(proj).split("/")[RDFUtil.nn(proj).split("/").length-1]+"\""+","));
+            projections.forEach(proj -> select.append("\""+graphO.nn(proj).split("/")[graphO.nn(proj).split("/").length-1]+"\""+","));
             q.getWrappers().forEach(w -> from.append(wrapperIriToID.get(w.getWrapper())+","));
             q.getJoinConditions().forEach(j -> where.append(
-                    "\""+RDFUtil.nn(j.getLeft_attribute()).split("/")[RDFUtil.nn(j.getLeft_attribute()).split("/").length-1]+"\""+
+                    "\""+graphO.nn(j.getLeft_attribute()).split("/")[graphO.nn(j.getLeft_attribute()).split("/").length-1]+"\""+
                             " = "+
-                            "\""+RDFUtil.nn(j.getRight_attribute()).split("/")[RDFUtil.nn(j.getRight_attribute()).split("/").length-1]+"\""+
+                            "\""+graphO.nn(j.getRight_attribute()).split("/")[graphO.nn(j.getRight_attribute()).split("/").length-1]+"\""+
                             " AND "));
             SQL.append(select.substring(0,select.length()-1));
             SQL.append(from.substring(0,from.length()-1));
@@ -163,18 +183,25 @@ public class OMQResource {
         String SQL = objBody.getAsString("sql");
         List<String> features = ((JSONArray)objBody.get("features")).stream().map(f -> f.toString()).collect(Collectors.toList());
 
-        MongoClient client = Utils.getMongoDBClient();
+//        MongoClient client = Utils.getMongoDBClient();
         // Structure with wrapper obj, wrapper ID and list of attributes
         List<Tuple3<Wrapper,String,List<String>>> wrappers = Lists.newArrayList();
         ((JSONArray)objBody.get("wrappers")).forEach(wID -> {
             String strWrapperID = (String)wID;
-            Document wrapper = MongoCollections.getWrappersCollection(client).find(new Document("wrapperID",strWrapperID)).first();
-            Document ds = MongoCollections.getDataSourcesCollection(client).find(new Document("dataSourceID", wrapper.getString("dataSourceID"))).first();
+            WrapperModel wrapper = wrapperR.findByWrapperID(strWrapperID);
+//            Document wrapper = MongoCollections.getWrappersCollection(client).find(new Document("wrapperID",strWrapperID)).first();
+            DataSourceModel ds = dataSourceR.findByDataSourceID(wrapper.getDataSourceID());
+//            Document ds = MongoCollections.getDataSourcesCollection(client).find(new Document("dataSourceID", wrapper.getString("dataSourceID"))).first();
             List<String> attributes = Lists.newArrayList();
-            ((List<Document>)wrapper.get("attributes")).forEach(a -> {
-                attributes.add("'"+a.getString("name")+"'");
+
+            wrapper.getAttributes().forEach(a -> {
+                attributes.add(a.getName());
             });
-            wrappers.add(new Tuple3<>(Wrapper.specializeWrapper(ds,wrapper.getString("query")),strWrapperID,attributes));
+
+//            ((List<Document>)wrapper.get("attributes")).forEach(a -> {
+//                attributes.add("'"+a.getString("name")+"'");
+//            });
+            wrappers.add(new Tuple3<>(Wrapper.specializeWrapper(ds,wrapper.getQuery()),strWrapperID,attributes));
         });
 
         JSONArray data = new JSONArray();
@@ -190,7 +217,7 @@ public class OMQResource {
         System.out.println(SQL);
         SQLiteUtils.executeSelect(SQL,features).forEach(d -> data.add(d));
 
-        client.close();
+//        client.close();
         JSONObject out = new JSONObject();
         out.put("data",data);
         return Response.ok(out.toJSONString()).build();

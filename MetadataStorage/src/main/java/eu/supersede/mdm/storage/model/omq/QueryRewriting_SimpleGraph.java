@@ -1,6 +1,5 @@
 package eu.supersede.mdm.storage.model.omq;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import eu.supersede.mdm.storage.model.Namespaces;
@@ -34,6 +33,7 @@ import org.apache.jena.sparql.core.BasicPattern;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.SimpleGraph;
+
 import java.util.*;
 
 public class QueryRewriting_SimpleGraph {

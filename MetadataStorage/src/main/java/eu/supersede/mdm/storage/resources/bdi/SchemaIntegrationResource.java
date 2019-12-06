@@ -5,8 +5,8 @@ import eu.supersede.mdm.storage.bdi.alignment.Finder;
 import eu.supersede.mdm.storage.bdi.alignment.GlobalVsLocal;
 import eu.supersede.mdm.storage.bdi.alignment.LogMapMatcher;
 import eu.supersede.mdm.storage.bdi.extraction.Namespaces;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.util.ConfigManager;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import eu.supersede.mdm.storage.util.Utils;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -14,6 +14,7 @@ import net.minidev.json.JSONValue;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -27,6 +28,8 @@ public class SchemaIntegrationResource {
     private static final Logger LOGGER = Logger.getLogger(SchemaIntegrationResource.class.getName());
     private final SchemaIntegrationHelper schemaIntegrationHelper = new SchemaIntegrationHelper();
 
+    @Inject
+    GraphOperations graphO;
     @GET
     @Path("getSchemaAlignments/{dataSource1_id}/{dataSource2_id}")
     @Consumes("text/plain")
@@ -88,7 +91,7 @@ public class SchemaIntegrationResource {
                     System.out.println(dataPropertiesSpecialAlignments.toJSONString());*/
 
                     JSONArray tempAlignmentsArray = alignmentsArray;
-                    RDFUtil.runAQuery("SELECT * WHERE { GRAPH <" + alignmentsIRI + "> {?s ?p ?o} }", alignmentsIRI).forEachRemaining(triple -> {
+                    graphO.runAQuery("SELECT * WHERE { GRAPH <" + alignmentsIRI + "> {?s ?p ?o} }").forEachRemaining(triple -> {
                         JSONObject alignments = new JSONObject();
                         localHashMap.put(triple.get("s").toString() + triple.get("p").toString(), triple.get("s").toString() + triple.get("p").toString());
                        schemaIntegrationHelper.populateResponseArray(tempAlignmentsArray, triple, alignments);

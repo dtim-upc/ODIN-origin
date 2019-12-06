@@ -1,20 +1,21 @@
 package eu.supersede.mdm.storage.parsers;
 
 import com.google.gson.Gson;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.model.Namespaces;
 import eu.supersede.mdm.storage.model.metamodel.GlobalGraph;
 import eu.supersede.mdm.storage.parsers.models.*;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class ImportOWLtoWebVowl {
 
+    @Inject
+    GraphOperations graphO;
 
     String prefix = "G";
     String namespace = "";
@@ -54,9 +55,8 @@ public class ImportOWLtoWebVowl {
     public String convert(String graphIRI, String defaultNamespace){
 
         List<Triple> triples = new ArrayList<>();
-        RDFUtil.runAQuery("SELECT ?s ?p ?o WHERE { GRAPH <" + graphIRI + "> { ?s ?p ?o } }", graphIRI).forEachRemaining(res -> {
-            triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(),
-                        new PropertyImpl(res.get("p").toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
+        graphO.runAQuery("SELECT ?s ?p ?o WHERE { GRAPH <" + graphIRI + "> { ?s ?p ?o } }").forEachRemaining(res -> {
+
         });
 
         List<Nodes> nodes = new ArrayList<>();

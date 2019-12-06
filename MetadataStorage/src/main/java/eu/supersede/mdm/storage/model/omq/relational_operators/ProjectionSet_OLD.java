@@ -1,12 +1,16 @@
 package eu.supersede.mdm.storage.model.omq.relational_operators;
 
 import com.google.common.collect.Sets;
-import eu.supersede.mdm.storage.util.RDFUtil;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 
+import javax.inject.Inject;
 import java.util.Objects;
 import java.util.Set;
 
 public class ProjectionSet_OLD extends RelationalOperator {
+
+    @Inject
+    GraphOperations graphO;
 
     public ProjectionSet_OLD() {
         this.projectedAttributes = Sets.newHashSet();
@@ -49,7 +53,7 @@ public class ProjectionSet_OLD extends RelationalOperator {
     public String toString() {
         String out = "π(";
         for (String p : projectedAttributes) {
-            out += RDFUtil.nn(p) + ",";
+            out += graphO.nn(p) + ",";
         }
         out = out.substring(0,out.length()-1);
         out += ")";

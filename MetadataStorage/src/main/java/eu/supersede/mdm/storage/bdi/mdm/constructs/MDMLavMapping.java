@@ -1,27 +1,27 @@
 package eu.supersede.mdm.storage.bdi.mdm.constructs;
 
 import com.google.common.collect.ImmutableMap;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCursor;
 import eu.supersede.mdm.storage.bdi.extraction.Namespaces;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.mongo.models.*;
+import eu.supersede.mdm.storage.db.mongo.repositories.DataSourceRepository;
+import eu.supersede.mdm.storage.db.mongo.repositories.GlobalGraphRepository;
+import eu.supersede.mdm.storage.db.mongo.repositories.WrapperRepository;
+import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
 import eu.supersede.mdm.storage.model.metamodel.GlobalGraph;
-import eu.supersede.mdm.storage.resources.LAVMappingResource;
-import eu.supersede.mdm.storage.resources.WrapperResource;
-import eu.supersede.mdm.storage.util.MongoCollections;
-import eu.supersede.mdm.storage.util.RDFUtil;
+import eu.supersede.mdm.storage.model.metamodel.SourceGraph;
+import eu.supersede.mdm.storage.service.LAVMappingService;
 import eu.supersede.mdm.storage.util.Tuple3;
-import eu.supersede.mdm.storage.util.Utils;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.bson.Document;
 import org.semarglproject.vocab.OWL;
 import org.semarglproject.vocab.RDF;
 import org.semarglproject.vocab.RDFS;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,10 +36,23 @@ public class MDMLavMapping {
     private String mdmGlobalGraphIri;
     private String mdmGgId;
     private JSONArray wrappersMongoInformation = new JSONArray();
-    private JSONArray wrappersCoveringGlobalGraph;
-    //private List<Tuple2<String, String>> lavMappings = new ArrayList<>();
-    private JSONObject lavMapping;
-    private JSONArray featureAndAttributes;
+    private List<String> wrappersCoveringGlobalGraph;
+    private LAVMappingModel lavMapping;
+    private List<LAVsameAs> featureAndAttributes;
+    @Inject
+    GlobalGraphRepository globalGraphR;
+    @Inject
+    WrapperRepository wrapperR;
+
+    @Inject
+    DataSourceRepository dataSourceR;
+
+    @Inject
+    LAVMappingService LAVService;
+
+    @Inject
+    GraphOperations graphO;
+
     /*Map<feature, List< Tuple3<localName, sourceName, IRI>, Tuple3<,,>,....*/
     private Map<String, List<Tuple3<String, String, String>>> features = new HashMap<>();
     HashMap<String, String> nodesIds;
@@ -80,7 +93,7 @@ public class MDMLavMapping {
      */
     private void getFeaturesWithSameAsEdges() {
         String SPARQL = "SELECT * WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?f rdf:type <" + GlobalGraph.FEATURE.val() + "> . OPTIONAL {?f G:sameAs ?o.} } }";
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + SPARQL, mdmGlobalGraphIri).forEachRemaining(triple -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + SPARQL).forEachRemaining(triple -> {
             //System.out.print(triple.getResource("f") + "\t");
             //System.out.print(triple.get("o") + "\n");
 
@@ -114,13 +127,20 @@ public class MDMLavMapping {
      * Let's get the ids of the associated wrappers and store them in JsonArray named wrappersCoveringGlobalGraph
      */
     private void getWrapperInfoFromGg() {
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCursor<Document> cursor = MongoCollections.getGlobalGraphCollection(client).find(new Document("namedGraph", mdmGlobalGraphIri)).iterator();
+//        MongoClient client = Utils.getMongoDBClient();
 
-        JSONObject ggInfo = (JSONObject) JSONValue.parse(MongoCollections.getMongoObject(client, cursor));
-        wrappersCoveringGlobalGraph = (JSONArray) ggInfo.get("wrappers");
-        mdmGgId = ggInfo.getAsString("globalGraphID");
-        client.close();
+        globalGraphR.findByNamedGraph(mdmGlobalGraphIri);
+        GlobalGraphModel ggInfo = globalGraphR.findByNamedGraph("mdmGlobalGraphIri");
+        wrappersCoveringGlobalGraph = ggInfo.getWrappers();
+        mdmGgId = ggInfo.getGlobalGraphID();
+
+
+//        MongoCursor<Document> cursor = MongoCollections.getGlobalGraphCollection(client).find(new Document("namedGraph", mdmGlobalGraphIri)).iterator();
+//
+//        JSONObject ggInfo = (JSONObject) JSONValue.parse(MongoCollections.getMongoObject(client, cursor));
+//        wrappersCoveringGlobalGraph = (JSONArray) ggInfo.get("wrappers");
+//        mdmGgId = ggInfo.getAsString("globalGraphID");
+//        client.close();
     }
 
     /**
@@ -129,39 +149,47 @@ public class MDMLavMapping {
     private void initLavMapping() {
         //Let's iterate over all the wrappers
         wrappersCoveringGlobalGraph.forEach(wrapperId -> {
-            MongoClient client = Utils.getMongoDBClient();
-            MongoCursor<Document> wrapperCursor = MongoCollections.getWrappersCollection(client).
-                    find(new Document("wrapperID", wrapperId)).iterator();
-            JSONObject wrapperInfo = (JSONObject) JSONValue.parse(MongoCollections.getMongoObject(client, wrapperCursor));
+//            MongoClient client = Utils.getMongoDBClient();
+
+            WrapperModel wrapperInfo = wrapperR.findByWrapperID(wrapperId);
 
             //For each wrapper call this method to get the job done
-            createLavMappings(wrapperInfo.getAsString("iri"));
+            createLavMappings(wrapperInfo.getIri());
 
-            lavMapping = new JSONObject();
-            lavMapping.put("wrapperID", wrapperId.toString());
-            lavMapping.put("isModified", "false");
-
-            lavMapping.put("globalGraphID", mdmGgId);
-            lavMapping.put("sameAs", featureAndAttributes);
-            //System.out.println(lavMapping.toJSONString());
+            lavMapping = new LAVMappingModel();
+            lavMapping.setWrapperID(wrapperId);
+            lavMapping.setIsModified("false");
+            lavMapping.setGlobalGraphID(mdmGgId);
+            lavMapping.setSameAs(featureAndAttributes);
             LOGGER.info("FeaturesAndAttributes for this wrapper: ");
-            LOGGER.info(featureAndAttributes.toJSONString());
+            LOGGER.info(featureAndAttributes.toString());
 
             // Call LAV Mapping Resource to save the LAV mapping info accordingly
-            JSONObject lavMappingResourceInfo = LAVMappingResource.createLAVMappingMapsTo(lavMapping.toJSONString());
+            JSONObject lavMappingResourceInfo = LAVService.createLAVMappingMapsTo(UtilsMongo.ToJsonString(lavMapping) );
+//            JSONObject lavMappingResourceInfo = LAVMappingResource.createLAVMappingMapsTo(lavMapping.toJSONString());
             //System.out.println(lavMappingResourceInfo);
-            wrapperInfo.put("LAVMappingID", lavMappingResourceInfo.getAsString("LAVMappingID"));
+            wrapperInfo.setLAVMappingID(lavMappingResourceInfo.getAsString("LAVMappingID"));
+//            wrapperInfo.put("LAVMappingID", lavMappingResourceInfo.getAsString("LAVMappingID"));
             wrappersMongoInformation.add(wrapperInfo);
-            client.close();
+//            client.close();
         });
 
     }
 
+    public JSONArray getWrapperAttributes(String iri) {
+        JSONArray attributes = new JSONArray();
+        String SPARQL = "SELECT ?a WHERE { GRAPH ?g { <"+iri+"> <"+ SourceGraph.HAS_ATTRIBUTE.val()+"> ?a } }";
+        graphO.runAQuery(SPARQL).forEachRemaining(t -> {
+            attributes.add(t.get("a").asNode().getURI());
+        });
+        return attributes;
+    }
+
     private void createLavMappings(String wrapperIri) {
         //Get attributes of all the wrappers
-        JSONArray wrapperAttributes = WrapperResource.getWrapperAttributes(wrapperIri);
+        JSONArray wrapperAttributes = getWrapperAttributes(wrapperIri);
         //System.out.println(wrapperAttributes.toJSONString());
-        featureAndAttributes = new JSONArray();
+        featureAndAttributes = new ArrayList<>();
 
         // iterate over all the wrapper attributes
         wrapperAttributes.forEach(attr -> {
@@ -176,10 +204,9 @@ public class MDMLavMapping {
                     /*Check the type of the feature and the attribute*/
                     if (attribute.equals(getLastElementOfIRI(key)) && getSourceFromIRI(key).equals(getWrapperSourceFromIRI(attr.toString()))) {
                         //System.out.println("Key: " + key);
-                        //lavMappings.add(new Tuple2<>(attr.toString(), key));
-                        JSONObject temp = new JSONObject();
-                        temp.put("feature", key);
-                        temp.put("attribute", attr.toString());
+                        LAVsameAs temp = new LAVsameAs();
+                        temp.setFeature(key);
+                        temp.setAttribute(attr.toString());
                         featureAndAttributes.add(temp);
                     }
                 } else {
@@ -187,10 +214,9 @@ public class MDMLavMapping {
                     list.forEach(tuple -> {
                         if (tuple._1.equals(attribute) && tuple._2.equals(getWrapperSourceFromIRI(attr.toString()))) {
                             //System.out.println("Key: " + key + " LocalName: " + tuple._1  + " Source: " + tuple._2);
-                            //lavMappings.add(new Tuple2<>(attr.toString(), key));
-                            JSONObject temp = new JSONObject();
-                            temp.put("feature", key);
-                            temp.put("attribute", attr.toString());
+                            LAVsameAs temp = new LAVsameAs();
+                            temp.setFeature(key);
+                            temp.setAttribute(attr.toString());
                             featureAndAttributes.add(temp);
                         }
                     });
@@ -221,7 +247,7 @@ public class MDMLavMapping {
         temp.remove(dataSourceSchemaIri);
 
         List<Triple> triples = new ArrayList<>();
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p ?o . }}", mdmGlobalGraphIri).forEachRemaining(res -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p ?o . }}").forEachRemaining(res -> {
             //System.out.println(res.get("s").toString() + "\t" + res.get("p").toString() + "\t" + res.get("o").toString());
             triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(), new PropertyImpl(res.get("p").asResource().toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
         });
@@ -252,8 +278,6 @@ public class MDMLavMapping {
                     /*Create source and target i.e. edges, for same as relationship */
                     if (triple.getPredicate().getURI().equals(GlobalGraph.SAME_AS.val())) {
                         //System.out.println("SAME AS: "+ triple);
-                        //selectionArray.add( createObject(triple.getObject().getURI() , triple.getObject().getURI(), GlobalGraph.FEATURE.val() ));
-                        //graphicalGraphArray.add(nodesIds.get(triple.getObject().getURI()));
 
                         JSONObject obj = new JSONObject();
                         obj.put("source", createObject(triple.getSubject().getURI(), triple.getSubject().getURI(), GlobalGraph.FEATURE.val()));
@@ -305,7 +329,7 @@ public class MDMLavMapping {
         lavMappingSubGraph.put("LAVMappingID", wrapperInfo.getAsString("LAVMappingID"));
 
         //System.out.println(lavMappingSubGraph);
-        LAVMappingResource.createLAVMappingSubgraph(lavMappingSubGraph.toJSONString());
+        LAVService.createLAVMappingSubgraph(lavMappingSubGraph.toJSONString());
     }
 
     private JSONObject createObject(String iri, String name, String namespace) {
@@ -319,12 +343,9 @@ public class MDMLavMapping {
 
     private String getDataSourceSchemaIRI(JSONObject obj) {
         String iri = "";
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCursor<Document> dataSourceCursor = MongoCollections.getDataSourcesCollection(client).
-                find(new Document("dataSourceID", obj.getAsString("dataSourceID"))).iterator();
-        JSONObject dataSourceInfo = (JSONObject) JSONValue.parse(MongoCollections.getMongoObject(client, dataSourceCursor));
-        iri = dataSourceInfo.getAsString("schema_iri");
-        client.close();
+//        MongoClient client = Utils.getMongoDBClient();
+        DataSourceModel dataSourceInfo = dataSourceR.findByDataSourceID(obj.getAsString("dataSourceID"));
+        iri = dataSourceInfo.getSchema_iri();
         return iri;
     }
 

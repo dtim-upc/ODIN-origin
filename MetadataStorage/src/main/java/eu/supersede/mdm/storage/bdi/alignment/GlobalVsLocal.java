@@ -1,13 +1,14 @@
 package eu.supersede.mdm.storage.bdi.alignment;
 
 import eu.supersede.mdm.storage.bdi.extraction.Namespaces;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.resources.bdi.SchemaIntegrationHelper;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import eu.supersede.mdm.storage.util.Tuple2;
 import eu.supersede.mdm.storage.util.Tuple3;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,10 @@ import java.util.stream.Collectors;
  * Created by Kashif-Rabbani in June 2019
  */
 public class GlobalVsLocal {
+
+    @Inject
+    GraphOperations graphO;
+
     private JSONObject dataSource1Info = new JSONObject();
     private JSONObject dataSource2Info = new JSONObject();
     private JSONArray alignmentsArray = new JSONArray();
@@ -64,7 +69,7 @@ public class GlobalVsLocal {
         //System.out.println(superAndSubClassesArray.toJSONString());
         //System.out.println(onlyClassesArray.toJSONString());
 
-        RDFUtil.runAQuery("SELECT * WHERE { GRAPH <" + alignmentsIRI + "> {?s ?p ?o} }", alignmentsIRI).forEachRemaining(triple -> {
+        graphO.runAQuery("SELECT * WHERE { GRAPH <" + alignmentsIRI + "> {?s ?p ?o} }").forEachRemaining(triple -> {
             JSONObject alignments = new JSONObject();
             if (!triple.get("o").toString().split("__")[1].equals("CLASS")) {
                 schemaIntegrationHelper.populateResponseArray(alignmentsArray, triple, alignments);

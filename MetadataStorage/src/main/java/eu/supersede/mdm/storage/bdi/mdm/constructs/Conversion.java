@@ -1,17 +1,23 @@
 package eu.supersede.mdm.storage.bdi.mdm.constructs;
 
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.model.Namespaces;
 import eu.supersede.mdm.storage.resources.bdi.SchemaIntegrationHelper;
 import eu.supersede.mdm.storage.util.RDFUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 
+import javax.inject.Inject;
 import java.util.logging.Logger;
 
 /**
  * Created by Kashif-Rabbani in June 2019
  */
 public class Conversion {
+
+    @Inject
+    GraphOperations graphO;
+
     private static final Logger LOGGER = Logger.getLogger(Conversion.class.getName());
     //private JSONObject wrapper = new JSONObject();
     private JSONObject globalGraphInfo = new JSONObject();
@@ -49,7 +55,7 @@ public class Conversion {
      */
     private void seeTheTriplesOfNamedGraph() {
         String getClassProperties = " SELECT * WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p ?o .}} ";
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + getClassProperties, mdmGlobalGraphIri).forEachRemaining(triple -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + getClassProperties).forEachRemaining(triple -> {
             //System.out.print(triple.get("s") + "\t" + triple.get("p") + "\t" + triple.get("o") + "\n");
         });
     }

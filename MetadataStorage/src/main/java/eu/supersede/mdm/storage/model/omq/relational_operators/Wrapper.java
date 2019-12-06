@@ -1,19 +1,19 @@
 package eu.supersede.mdm.storage.model.omq.relational_operators;
 
-import com.clearspring.analytics.util.Lists;
-import com.google.gson.Gson;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.mongo.models.DataSourceModel;
 import eu.supersede.mdm.storage.model.omq.wrapper_implementations.*;
-import eu.supersede.mdm.storage.util.RDFUtil;
-import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import org.bson.Document;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class Wrapper extends RelationalOperator {
+
+    @Inject
+    GraphOperations graphO;
 
     private String wrapper;
 
@@ -46,7 +46,7 @@ public class Wrapper extends RelationalOperator {
 
     @Override
     public String toString() {
-        return "("+RDFUtil.nn(wrapper)+")";
+        return "("+graphO.nn(wrapper)+")";
     }
 
     public String inferSchema() throws Exception {
@@ -61,18 +61,18 @@ public class Wrapper extends RelationalOperator {
         throw new Exception("Can't populate a generic wrapper, need to call an implementation subclass");
     }
 
-    public static Wrapper specializeWrapper(Document ds, String queryParameters) {
+    public static Wrapper specializeWrapper(DataSourceModel ds, String queryParameters) {
         Wrapper w = null;
-        switch (ds.getString("type")) {
+        switch (ds.getType()) {
             case "avro":
                 w = new SparkSQL_Wrapper("preview");
-                ((SparkSQL_Wrapper)w).setPath(ds.getString("avro_path"));
-                ((SparkSQL_Wrapper)w).setTableName(ds.getString("name"));
+                ((SparkSQL_Wrapper)w).setPath(ds.getAvro_path());
+                ((SparkSQL_Wrapper)w).setTableName(ds.getName());
                 ((SparkSQL_Wrapper)w).setSparksqlQuery(((JSONObject) JSONValue.parse(queryParameters)).getAsString("query"));
                 break;
             case "csv":
                 w = new CSV_Wrapper("preview");
-                ((CSV_Wrapper)w).setPath(ds.getString("csv_path"));
+                ((CSV_Wrapper)w).setPath(ds.getCsv_path());
                 ((CSV_Wrapper)w).setColumnDelimiter(((JSONObject) JSONValue.parse(queryParameters)).getAsString("csvColumnDelimiter"));
                 ((CSV_Wrapper)w).setRowDelimiter(((JSONObject) JSONValue.parse(queryParameters)).getAsString("csvRowDelimiter"));
                 ((CSV_Wrapper)w).setHeaderInFirstRow(
@@ -80,8 +80,8 @@ public class Wrapper extends RelationalOperator {
                 break;
             case "mongodb":
                 w = new MongoDB_Wrapper("preview");
-                ((MongoDB_Wrapper)w).setConnectionString(ds.getString("mongodb_connectionString"));
-                ((MongoDB_Wrapper)w).setDatabase(ds.getString("mongodb_database"));
+                ((MongoDB_Wrapper)w).setConnectionString(ds.getMongodb_connectionString());
+                ((MongoDB_Wrapper)w).setDatabase(ds.getMongodb_database());
 
                 ((MongoDB_Wrapper)w).setMongodbQuery(((JSONObject) JSONValue.parse(queryParameters)).getAsString("query"));
                 break;
@@ -91,28 +91,29 @@ public class Wrapper extends RelationalOperator {
                 break;
             case "plaintext":
                 w = new PlainText_Wrapper("preview");
-                ((PlainText_Wrapper)w).setPath(ds.getString("plaintext_path"));
+//                TODO: check if exist
+//                ((PlainText_Wrapper)w).setPath(ds.getString("plaintext_path"));
 
                 break;
             case "parquet":
                 w = new SparkSQL_Wrapper("preview");
-                ((SparkSQL_Wrapper)w).setPath(ds.getString("parquet_path"));
-                ((SparkSQL_Wrapper)w).setTableName(ds.getString("name"));
+                ((SparkSQL_Wrapper)w).setPath(ds.getParquet_path());
+                ((SparkSQL_Wrapper)w).setTableName(ds.getName());
                 ((SparkSQL_Wrapper)w).setSparksqlQuery(((JSONObject) JSONValue.parse(queryParameters)).getAsString("query"));
                 break;
             case "restapi":
                 w = new REST_API_Wrapper("preview");
-                ((REST_API_Wrapper)w).setUrl(ds.getString("restapi_url"));
+                ((REST_API_Wrapper)w).setUrl(ds.getRestapi_url());
                 break;
             case "sql":
                 w = new SQL_Wrapper("preview");
-                ((SQL_Wrapper)w).setURL_JDBC(ds.getString("sql_jdbc"));
+                ((SQL_Wrapper)w).setURL_JDBC(ds.getSql_jdbc());
                 JSONObject jsonObject =  (JSONObject) JSONValue.parse(queryParameters);
                 ((SQL_Wrapper)w).setQuery(jsonObject.getAsString("query"));
                 break;
             case "json":
                 w = new JSON_Wrapper("preview");
-                ((JSON_Wrapper)w).setPath(ds.getString("json_path"));
+                ((JSON_Wrapper)w).setPath(ds.getJson_path());
                 //((JSON_Wrapper)w).setExplodeLevels(
                 //    ((JSONArray)((JSONObject) JSONValue.parse(queryParameters)).get("explodeLevels")).stream().map(a -> (String)a).collect(Collectors.toList())
                 //);

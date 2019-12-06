@@ -1,11 +1,11 @@
 package eu.supersede.mdm.storage.util;
 
 import com.google.common.collect.Lists;
-import eu.supersede.mdm.storage.model.graph.*;
+import eu.supersede.mdm.storage.model.graph.CQVertex;
+import eu.supersede.mdm.storage.model.graph.IntegrationEdge;
+import eu.supersede.mdm.storage.model.graph.IntegrationGraph;
 import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedGraph;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 

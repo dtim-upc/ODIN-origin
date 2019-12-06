@@ -1,11 +1,12 @@
 package eu.supersede.mdm.storage.bdi.alignment;
 
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.util.ConfigManager;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import eu.supersede.mdm.storage.util.Tuple3;
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,10 @@ import java.util.Set;
  * Created by Kashif-Rabbani in June 2019
  */
 public class LogMapMatcher {
+
+    @Inject
+    GraphOperations graphO;
+
     private String iri_onto1;
     private String iri_onto2;
     private String alignments_iri;
@@ -63,7 +68,8 @@ public class LogMapMatcher {
     }
 
     private void storeMappingsInTripleStore() {
-        RDFUtil.addBatchOfTriples(alignments_iri, alignmentsTriples);
+        graphO.addBatchOfTriples(alignments_iri,alignmentsTriples);
+//        RDFUtil.addBatchOfTriples(alignments_iri, alignmentsTriples);
     }
 
     private void iterateOverMappings(Set<MappingObjectStr> mappings) throws Exception {

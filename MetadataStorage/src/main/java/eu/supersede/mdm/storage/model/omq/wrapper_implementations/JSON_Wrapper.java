@@ -1,6 +1,5 @@
 package eu.supersede.mdm.storage.model.omq.wrapper_implementations;
 
-import com.clearspring.analytics.util.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import eu.supersede.mdm.storage.model.omq.relational_operators.Wrapper;
@@ -13,8 +12,6 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;

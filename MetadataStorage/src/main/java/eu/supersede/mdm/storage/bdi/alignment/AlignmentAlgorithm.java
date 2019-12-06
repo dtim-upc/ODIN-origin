@@ -1,8 +1,8 @@
 package eu.supersede.mdm.storage.bdi.alignment;
 
 import eu.supersede.mdm.storage.bdi.extraction.Namespaces;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.resources.bdi.SchemaIntegrationHelper;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import eu.supersede.mdm.storage.util.SQLiteUtils;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -10,12 +10,17 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.openrdf.model.vocabulary.RDFS;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 
 /**
  * Created by Kashif-Rabbani in June 2019
  */
 public class AlignmentAlgorithm {
+
+    @Inject
+    GraphOperations graphO;
+
     private JSONObject basicInfo;
 
     public AlignmentAlgorithm(JSONObject obj) {
@@ -41,7 +46,7 @@ public class AlignmentAlgorithm {
                         case "OBJECT-PROPERTY":
                             //System.out.println("OBJECT-PROPERTY");
                             //TODO Handle the Object Property
-                            //RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), "EQUIVALENT_PROPERTY", data.get("PropertyB"));
+                            //graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), "EQUIVALENT_PROPERTY", data.get("PropertyB"));
                             break;
                         case "DATA-PROPERTY":
                             //System.out.println("DATA-PROPERTY");
@@ -56,8 +61,8 @@ public class AlignmentAlgorithm {
                                 // Remove Properties from aligned Classes
                                 //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), data.get("DomainPropA"), data.get("RangePropA"));
                                 //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), data.get("DomainPropB"), data.get("RangePropB"));
-                                //RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
-                                //RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
+                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
+                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
 
                                 Object[] rowResult = ((JSONArray) result.get(0)).toArray();
                                 HashMap<String, String> sqliteRow = new HashMap<>();
@@ -66,11 +71,11 @@ public class AlignmentAlgorithm {
                                     sqliteRow.put(obj.getAsString("feature"), obj.getAsString("value"));
                                 }
 
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.DOMAIN.toString(), data.get("DomainPropA"));
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.DOMAIN.toString(), data.get("DomainPropB"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.DOMAIN.toString(), data.get("DomainPropA"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.DOMAIN.toString(), data.get("DomainPropB"));
 
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.RANGE.toString(), data.get("RangePropA"));
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.RANGE.toString(), data.get("RangePropB"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.RANGE.toString(), data.get("RangePropA"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.RANGE.toString(), data.get("RangePropB"));
 
 
                                 //Move the Properties to the Parent class
@@ -78,23 +83,23 @@ public class AlignmentAlgorithm {
                                 //String newPropertyDomain = basicInfo.getAsString("integratedIRI") + "/" + ResourceFactory.createResource(data.get("DomainPropA")).getLocalName(); //+ "_" + ResourceFactory.createResource(data.get("DomainPropB")).getLocalName();
                                 String newPropertyDomain = basicInfo.getAsString("integratedIRI") + "/" + sqliteRow.get("userProvidedName"); //+ "_" + ResourceFactory.createResource(data.get("DomainPropB")).getLocalName();
 
-                                RDFUtil.addProperty(basicInfo.getAsString("integratedIRI"), newGlobalProperty, newPropertyDomain, data.get("RangePropA"));
+                                graphO.addProperty(basicInfo.getAsString("integratedIRI"), newGlobalProperty, newPropertyDomain, data.get("RangePropA"));
 
                                 // Handle SameAs
-                                RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), "EQUIVALENT_PROPERTY", newGlobalProperty);
-                                RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), "EQUIVALENT_PROPERTY", newGlobalProperty);
+                                graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), "EQUIVALENT_PROPERTY", newGlobalProperty);
+                                graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), "EQUIVALENT_PROPERTY", newGlobalProperty);
 
                             } else if (data.get("PropertyB").contains(Namespaces.G.val())) { // PropertyB is the one with global IRI, coming from integrated global graph
                                 // Add domain of PropertyA as domain of PropertyB
-                                RDFUtil.addPropertyDomain(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), data.get("DomainPropA"));
+                                graphO.addPropertyDomain(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), data.get("DomainPropA"));
 
                                 //Remove domain and Range of PropertyA
                                 //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), data.get("DomainPropA"), data.get("RangePropA"));
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.DOMAIN.toString(), data.get("DomainPropA"));
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.RANGE.toString(), data.get("RangePropA"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.DOMAIN.toString(), data.get("DomainPropA"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.RANGE.toString(), data.get("RangePropA"));
 
                                 //Create sameAs edge to the PropertyA from PropertyB
-                                RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), "EQUIVALENT_PROPERTY", data.get("PropertyA"));
+                                graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), "EQUIVALENT_PROPERTY", data.get("PropertyA"));
                             } else {
                                 //TODO Case 2 -  When classes of the properties are not aligned
                                 String newGlobalGraphProperty = basicInfo.getAsString("integratedIRI") + "/" + ResourceFactory.createResource(data.get("PropertyA")).getLocalName();
@@ -103,23 +108,23 @@ public class AlignmentAlgorithm {
                                 //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), data.get("DomainPropB"), data.get("RangePropB"));
 
                                 //removePropertyTriples(data);
-                                //RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
-                                //RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
+                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
+                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
 
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.DOMAIN.toString(), data.get("DomainPropA"));
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.DOMAIN.toString(), data.get("DomainPropB"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.DOMAIN.toString(), data.get("DomainPropA"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.DOMAIN.toString(), data.get("DomainPropB"));
 
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.RANGE.toString(), data.get("RangePropA"));
-                                RDFUtil.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.RANGE.toString(), data.get("RangePropB"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.RANGE.toString(), data.get("RangePropA"));
+                                graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.RANGE.toString(), data.get("RangePropB"));
 
 
                                 String[] domainsForNewGlobalPropertyResource = {data.get("DomainPropA"), data.get("DomainPropB")};
 
-                                RDFUtil.addProperty(basicInfo.getAsString("integratedIRI"), newGlobalGraphProperty, domainsForNewGlobalPropertyResource, data.get("RangePropA"));
+                                graphO.addProperty(basicInfo.getAsString("integratedIRI"), newGlobalGraphProperty, domainsForNewGlobalPropertyResource, data.get("RangePropA"));
 
                                 // Handle SameAs
-                                RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), "EQUIVALENT_PROPERTY", newGlobalGraphProperty);
-                                RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), "EQUIVALENT_PROPERTY", newGlobalGraphProperty);
+                                graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), "EQUIVALENT_PROPERTY", newGlobalGraphProperty);
+                                graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), "EQUIVALENT_PROPERTY", newGlobalGraphProperty);
                             }
                             break;
                     }
@@ -145,7 +150,7 @@ public class AlignmentAlgorithm {
                 case "ACCEPTED":
                     switch (classRow.get("classType")) {
                         case "SUPERCLASS":
-                            RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), classRow.get("classA"), "SUB_CLASS_OF", classRow.get("classB"));
+                            graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), classRow.get("classA"), "SUB_CLASS_OF", classRow.get("classB"));
                             break;
                         case "LOCALCLASS":
                             Resource classA = ResourceFactory.createResource(classRow.get("classA"));
@@ -158,9 +163,9 @@ public class AlignmentAlgorithm {
 
                             //System.out.println("GG Resource: " + newGlobalGraphClassResource);
 
-                            RDFUtil.addClassOrPropertyTriple(basicInfo.getAsString("integratedIRI"), newGlobalGraphClassResource, "CLASS");
-                            RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), classRow.get("classA"), "SUB_CLASS_OF", newGlobalGraphClassResource);
-                            RDFUtil.addCustomTriple(basicInfo.getAsString("integratedIRI"), classRow.get("classB"), "SUB_CLASS_OF", newGlobalGraphClassResource);
+                            graphO.addClassOrPropertyTriple(basicInfo.getAsString("integratedIRI"), newGlobalGraphClassResource, "CLASS");
+                            graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), classRow.get("classA"), "SUB_CLASS_OF", newGlobalGraphClassResource);
+                            graphO.addCustomTriple(basicInfo.getAsString("integratedIRI"), classRow.get("classB"), "SUB_CLASS_OF", newGlobalGraphClassResource);
                             break;
                     }
                     break;

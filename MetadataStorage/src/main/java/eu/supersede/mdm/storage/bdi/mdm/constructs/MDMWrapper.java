@@ -1,11 +1,11 @@
 package eu.supersede.mdm.storage.bdi.mdm.constructs;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 import eu.supersede.mdm.storage.bdi.extraction.Namespaces;
-import eu.supersede.mdm.storage.resources.WrapperResource;
+import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.mongo.models.fields.GlobalGraphMongo;
+import eu.supersede.mdm.storage.db.mongo.repositories.GlobalGraphRepository;
 import eu.supersede.mdm.storage.resources.bdi.SchemaIntegrationHelper;
-import eu.supersede.mdm.storage.util.MongoCollections;
+import eu.supersede.mdm.storage.service.WrapperService;
 import eu.supersede.mdm.storage.util.RDFUtil;
 import eu.supersede.mdm.storage.util.Utils;
 import net.minidev.json.JSONArray;
@@ -13,14 +13,23 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
-import org.bson.Document;
 
-import static com.mongodb.client.model.Filters.eq;
+import javax.inject.Inject;
 
 /**
  * Created by Kashif-Rabbani in June 2019
  */
 public class MDMWrapper {
+
+    @Inject
+    GlobalGraphRepository globalGraphR;
+
+    @Inject
+    WrapperService wrapperS;
+
+    @Inject
+    GraphOperations graphO;
+
     private String mdmGgIri;
     private JSONObject globalGraphInfo;
     private JSONObject wrapper = new JSONObject();
@@ -45,7 +54,7 @@ public class MDMWrapper {
             //System.out.println(dataSource.toJSONString());
             populateWrapperContent(dataSource);
             try {
-                JSONObject res = WrapperResource.createWrapper(wrapper.toJSONString());
+                JSONObject res = wrapperS.createWrapper(wrapper.toJSONString());
                 //System.out.println(res.toJSONString());
                 wrappersIds.add(res.getAsString("wrapperID"));
                 //HttpUtils.sendPost(wrapper, postWrapperUrl);
@@ -74,7 +83,7 @@ public class MDMWrapper {
 
         JSONArray attributes = new JSONArray();
         String getProperties = " SELECT * WHERE { GRAPH <" + sourceIRI + "> { ?property rdfs:domain ?domain; rdfs:range ?range . FILTER NOT EXISTS {?range rdf:type rdfs:Class.}} }";
-        RDFUtil.runAQuery(RDFUtil.sparqlQueryPrefixes + getProperties, sourceIRI).forEachRemaining(triple -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + getProperties).forEachRemaining(triple -> {
             //System.out.print(triple.get("property") + "\t");
             //System.out.print(triple.get("domain") + "\t");
             //System.out.print(triple.get("range") + "\n");
@@ -91,11 +100,8 @@ public class MDMWrapper {
     }
 
     private void addWrappersInfoInGGMongoCollection() {
-        MongoClient client = Utils.getMongoDBClient();
-        MongoCollection collection = MongoCollections.getGlobalGraphCollection(client);
-        collection.updateOne(eq("namedGraph", mdmGgIri),
-                new Document("$set", new Document("wrappers", wrappersIds)));
-        client.close();
+        globalGraphR.updateByGlobalGraphID(mdmGgIri, GlobalGraphMongo.FIELD_wrappers.val(),wrappersIds);
+
     }
 
     public static void checkNamedGraph(String uri) {

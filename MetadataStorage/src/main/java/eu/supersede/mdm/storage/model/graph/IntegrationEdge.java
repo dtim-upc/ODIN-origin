@@ -2,7 +2,6 @@ package eu.supersede.mdm.storage.model.graph;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
-import eu.supersede.mdm.storage.model.omq.ConjunctiveQuery;
 import eu.supersede.mdm.storage.model.omq.relational_operators.Wrapper;
 import org.jgrapht.graph.DefaultEdge;
 
