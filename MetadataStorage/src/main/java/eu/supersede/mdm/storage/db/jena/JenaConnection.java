@@ -1,6 +1,5 @@
 package eu.supersede.mdm.storage.db.jena;
 
-import eu.supersede.mdm.storage.db.mongo.MongoConnection;
 import eu.supersede.mdm.storage.util.ConfigManager;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb.TDBFactory;

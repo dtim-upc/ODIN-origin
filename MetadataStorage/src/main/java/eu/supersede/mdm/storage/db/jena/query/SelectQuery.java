@@ -1,14 +1,10 @@
 package eu.supersede.mdm.storage.db.jena.query;
 
-import eu.supersede.mdm.storage.db.jena.JenaConnection;
-import eu.supersede.mdm.storage.util.ConfigManager;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.query.*;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.tdb.TDBFactory;
-
-import javax.annotation.PostConstruct;
 
 public class SelectQuery {
 
@@ -31,9 +27,12 @@ public class SelectQuery {
     //"SELECT * WHERE { GRAPH <" + alignmentsIRI + "> {?s ?p ?o} }"
 
     /**
-     * CHECKED
-     * PRODUCES: SELECT * WHERE { GRAPH <namedGraph> {<subject> ?p ?o} } depending on parameters.
-     * The case before is when subject is null
+     *
+     * PRODUCES when predicate and object null:
+     *      SELECT * WHERE { GRAPH <namedGraph> {<subject> ?p ?o} } depending on parameters.
+     *
+     * PRODUCES when subject, predicate, object null:
+     *      SELECT * WHERE { GRAPH <namedGraph> {?s ?p ?o} } depending on parameters.
      *
      * @param namedGraph
      * @param subject to set in the where clause. If null, a var ?s is used.
@@ -108,13 +107,32 @@ public class SelectQuery {
      * @param object to set in the where clause. If null, a var ?o is used.
      * @return SELECT ?s WHERE {GRAPH <namedGraph>  { ?s ?p ?o } } in case predicate and object null
      */
-    public Query selectAllSubjectsFromGraph(String namedGraph,  String predicate, String object){
+    public Query selectSubjectsFromGraph(String namedGraph,  String predicate, String object){
         SelectBuilder query = getDefaultSelectAllFromGraph().addVar(VAR_subject);;
         query.setVar( VAR_graph, NodeFactory.createURI( namedGraph ) ) ;
         if(predicate != null)
             query.setVar( VAR_predicate, NodeFactory.createURI( predicate ) ) ;
         if(object != null)
             query.setVar( VAR_object, NodeFactory.createURI( object ) ) ;
+        return query.build();
+    }
+
+
+    //"SELECT ?t WHERE { GRAPH <" + globalGraphIRI + "> { <" + sourceIRI + "> <" Namespaces.rdf.val() + "type> ?t } }"
+    /**
+     * CHECKED
+     * @param namedGraph
+     * @param subject to set in the where clause. If null, a var ?s is used.
+     * @param predicate to set in the where clause. If null, a var ?p is used.
+     * @return SELECT ?o WHERE {GRAPH <namedGraph>  { ?s ?p ?o } } in case predicate and subject null
+     */
+    public Query selectObjectsFromGraph(String namedGraph,  String subject, String predicate){
+        SelectBuilder query = getDefaultSelectAllFromGraph().addVar(VAR_subject);;
+        query.setVar( VAR_graph, NodeFactory.createURI( namedGraph ) ) ;
+        if(predicate != null)
+            query.setVar( VAR_predicate, NodeFactory.createURI( predicate ) ) ;
+        if(subject != null)
+            query.setVar( VAR_subject, NodeFactory.createURI( subject ) ) ;
         return query.build();
     }
 
@@ -131,6 +149,38 @@ public class SelectQuery {
             query.setVar( VAR_predicate, NodeFactory.createURI( predicate ) ) ;
         return query.build();
     }
+
+    public Query selectDistinctPAndO(String graphIRI, String subjectIRI){
+        return QueryFactory.create("SELECT DISTINCT ?p ?o WHERE { GRAPH <" + graphIRI + "> {<"+subjectIRI+"> ?p ?o} }");
+    }
+
+    public Query selectDistinctSAndP(String graphIRI,String objectIRI){
+        return QueryFactory.create("SELECT DISTINCT ?s ?p WHERE { GRAPH <" + graphIRI + "> {?s ?p <"+objectIRI+"> } }");
+    }
+
+    public Query selectCountTriples(String graphIRI, String subjectIRI, String predicateIRI, String objectIRI){
+        return QueryFactory.create("SELECT (COUNT(*) AS ?count) WHERE { GRAPH <" + graphIRI + "> " +
+                "{<"+subjectIRI+"> <"+predicateIRI+"> <"+objectIRI+">} }");
+    }
+
+    /////////////////////////////////
+    //
+    //  Delete queries
+    //
+    /////////////////////////////////
+
+
+    public String delete(String graph, String subject, String predicate, String object){
+        return  "DELETE WHERE { GRAPH <" + graph + "> {<"+subject+"> <"+predicate+"> <"+object+">} }";
+    }
+
+
+    /////////////////////////////////
+    //
+    //  Update queries
+    //
+    /////////////////////////////////
+
 
 
 
