@@ -2,8 +2,10 @@ package eu.supersede.mdm.storage.db.mongo.repositories;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Updates;
 import eu.supersede.mdm.storage.db.mongo.MongoConnection;
 import eu.supersede.mdm.storage.db.mongo.models.GlobalGraphModel;
+import eu.supersede.mdm.storage.db.mongo.models.fields.GlobalGraphMongo;
 import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
 import net.minidev.json.JSONObject;
 
@@ -17,8 +19,6 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class GlobalGraphRepository {
 
-    private final String FIELD_GlobalGraphID = "globalGraphID";
-    private final String FIELD_NamedGraph = "namedGraph";
     private MongoCollection<GlobalGraphModel> globalGraphCollection;
 
 
@@ -34,9 +34,18 @@ public class GlobalGraphRepository {
         } catch (IOException ex) {
             ex.printStackTrace();
         } catch (com.mongodb.MongoWriteException ex){
-            //TODO: (Javier) Handle error when not able to write in db and check other exception throw by insertOne
+            //TODO: Handle error when not able to write in db and check other exception throw by insertOne
         }
     }
+
+    public void create(GlobalGraphModel globalGraph){
+        try {
+            globalGraphCollection.insertOne(globalGraph);
+        } catch (com.mongodb.MongoWriteException ex){
+            //TODO:Handle error when not able to write in db and check other exception throw by insertOne
+        }
+    }
+
 
     public JSONObject create(JSONObject globalGraphJsonObj){
         globalGraphJsonObj.put("globalGraphID", UUID.randomUUID().toString().replace("-",""));
@@ -53,11 +62,11 @@ public class GlobalGraphRepository {
     }
 
     public GlobalGraphModel findByGlobalGraphID(String globalGraphID){
-        return globalGraphCollection.find(eq(FIELD_GlobalGraphID,globalGraphID)).first();
+        return globalGraphCollection.find(eq(GlobalGraphMongo.FIELD_GlobalGraphID.val(),globalGraphID)).first();
     }
 
     public GlobalGraphModel findByNamedGraph(String namedGraph){
-        return globalGraphCollection.find(eq(FIELD_NamedGraph,namedGraph)).first();
+        return globalGraphCollection.find(eq(GlobalGraphMongo.FIELD_NamedGraph.val(),namedGraph)).first();
     }
 
     public List<GlobalGraphModel> findAll(){
@@ -68,4 +77,17 @@ public class GlobalGraphRepository {
         }
         return globalGraphs;
     }
+
+    public void updateByGlobalGraphID(String globalGraphID, String field, String value){
+        globalGraphCollection.updateOne(eq(GlobalGraphMongo.FIELD_GlobalGraphID.val(),globalGraphID), Updates.set(field,value));
+    }
+
+    public void updateByGlobalGraphID(String globalGraphID, String field, Object value){
+        globalGraphCollection.updateOne(eq(GlobalGraphMongo.FIELD_GlobalGraphID.val(),globalGraphID), Updates.set(field,value));
+    }
+
+    public void deleteByGlobalGraphID(String globalGraphID){
+        globalGraphCollection.deleteOne(eq(GlobalGraphMongo.FIELD_GlobalGraphID.val(), globalGraphID));
+    }
+
 }

@@ -7,7 +7,6 @@ import eu.supersede.mdm.storage.db.mongo.models.UserModel;
 import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
 
 import javax.annotation.PostConstruct;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +42,7 @@ public class UserRepository {
         } catch (IOException ex) {
             ex.printStackTrace();
         } catch (com.mongodb.MongoWriteException ex){
-            //TODO: (Javier) Handle error when not able to write in db and check other exception throw by insertOne
+            //TODO:  Handle error when not able to write in db and check other exception throw by insertOne
         }
     }
 
