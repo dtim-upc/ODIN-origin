@@ -3,7 +3,8 @@ package eu.supersede.mdm.storage;
 import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.db.jena.query.SelectQuery;
 import eu.supersede.mdm.storage.db.mongo.repositories.*;
-import eu.supersede.mdm.storage.resources.WrapperResource;
+import eu.supersede.mdm.storage.service.LAVMappingService;
+import eu.supersede.mdm.storage.service.WrapperService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 //For injection annotation @Inject
@@ -15,8 +16,13 @@ public class MyApplicationBinder extends AbstractBinder {
         bind(WrapperRepository.class).to(WrapperRepository.class);
         bind(DataSourceRepository.class).to(DataSourceRepository.class);
         bind(LAVMappingRepository.class).to(LAVMappingRepository.class);
+        bind(IntegratedDataSourcesRepository.class).to(IntegratedDataSourcesRepository.class);
 
         bind(SelectQuery.class).to(SelectQuery.class);
         bind(GraphOperations.class).to(GraphOperations.class);
+        bind(SelectQuery.class).to(SelectQuery.class);
+
+        bind(WrapperService.class).to(LAVMappingService.class);
+        bind(WrapperService.class).to(WrapperService.class);
     }
 }
