@@ -1,10 +1,6 @@
 package eu.supersede.mdm.storage.db.mongo.utils;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.util.ArrayList;

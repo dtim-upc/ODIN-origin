@@ -70,6 +70,10 @@ public class MongoConnection {
         getDatabase();
     }
 
+    public void drop(){
+        getDatabase().drop();
+    }
+
     public void close() {
         System.out.println("Closing MongoDB connection");
         LOGGER.info("Closing MongoDB connection");
