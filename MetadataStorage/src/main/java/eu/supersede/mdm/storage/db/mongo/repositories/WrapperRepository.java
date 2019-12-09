@@ -22,8 +22,7 @@ public class WrapperRepository {
     private MongoCollection<WrapperModel> wrapperCollection;
 
 
-    @PostConstruct
-    public void init() {
+    public WrapperRepository() {
         wrapperCollection = MongoConnection.getInstance().getDatabase().getCollection("wrappers", WrapperModel.class);
     }
 

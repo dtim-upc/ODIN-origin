@@ -24,11 +24,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class MDMGlobalGraph {
 
-    @Inject
-    GlobalGraphRepository globalGraphR;
+    GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     private String bdiGgIri = "";
     private String mdmGgIri = "";

@@ -9,8 +9,7 @@ import java.util.Set;
 
 public class ProjectionSet_OLD extends RelationalOperator {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     public ProjectionSet_OLD() {
         this.projectedAttributes = Sets.newHashSet();

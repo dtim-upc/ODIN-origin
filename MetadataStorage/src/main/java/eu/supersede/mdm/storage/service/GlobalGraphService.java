@@ -20,25 +20,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GlobalGraphService {
-    @Inject
-    GlobalGraphRepository globalGraphR;
+    GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    @Inject
-    LAVMappingRepository LAVMappingR;
+    LAVMappingRepository LAVMappingR = new LAVMappingRepository();
 
-    @Inject
-    WrapperRepository wrapperR;
+    WrapperRepository wrapperR = new WrapperRepository();
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
+
+    LAVMappingService delLAV = new LAVMappingService();
 
     public void deleteGlobalGraph(String globalGraphID){
 
         GlobalGraphModel globalGraphObj = globalGraphR.findByGlobalGraphID(globalGraphID);
-        LAVMappingService delLAV = new LAVMappingService();
+
 
         LAVMappingR.findAllByField(GlobalGraphMongo.FIELD_GlobalGraphID.val(),globalGraphID).forEach(lavMappingObj->{
             delLAV.delete(lavMappingObj.getLAVMappingID());

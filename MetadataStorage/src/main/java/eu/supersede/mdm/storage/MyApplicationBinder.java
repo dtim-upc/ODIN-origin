@@ -3,6 +3,9 @@ package eu.supersede.mdm.storage;
 import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.db.jena.query.SelectQuery;
 import eu.supersede.mdm.storage.db.mongo.repositories.*;
+import eu.supersede.mdm.storage.model.metamodel.GlobalGraph;
+import eu.supersede.mdm.storage.service.DataSourceService;
+import eu.supersede.mdm.storage.service.GlobalGraphService;
 import eu.supersede.mdm.storage.service.LAVMappingService;
 import eu.supersede.mdm.storage.service.WrapperService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -22,7 +25,9 @@ public class MyApplicationBinder extends AbstractBinder {
         bind(GraphOperations.class).to(GraphOperations.class);
         bind(SelectQuery.class).to(SelectQuery.class);
 
-        bind(WrapperService.class).to(LAVMappingService.class);
         bind(WrapperService.class).to(WrapperService.class);
+        bind(LAVMappingService.class).to(LAVMappingService.class);
+        bind(GlobalGraphService.class).to(GlobalGraphService.class);
+        bind(DataSourceService.class).to(DataSourceService.class);
     }
 }

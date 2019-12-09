@@ -22,8 +22,7 @@ public class IntegratedDataSourcesRepository {
     private MongoCollection<IntegratedDataSourcesModel> integratedDSCollection;
 
 
-    @PostConstruct
-    public void init() {
+    public IntegratedDataSourcesRepository() {
         integratedDSCollection = MongoConnection.getInstance().getDatabase().getCollection("integratedDataSources", IntegratedDataSourcesModel.class);
     }
 

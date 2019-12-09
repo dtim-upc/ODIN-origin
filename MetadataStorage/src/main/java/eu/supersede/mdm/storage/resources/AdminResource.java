@@ -1,6 +1,6 @@
 package eu.supersede.mdm.storage.resources;
 
-import eu.supersede.mdm.storage.db.mongo.MongoConnection;
+import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
 import eu.supersede.mdm.storage.util.ConfigManager;
 import org.apache.commons.io.FileUtils;
 
@@ -20,8 +20,7 @@ import java.io.IOException;
 @Path("metadataStorage")
 public class AdminResource {
 
-    @Inject
-    MongoConnection mongoConnection;
+
 
     /** System Metadata **/
     @GET @Path("admin/deleteAll")
@@ -32,7 +31,7 @@ public class AdminResource {
 //        MongoClient client = Utils.getMongoDBClient();
 //        client.getDatabase(ConfigManager.getProperty("system_metadata_db_name")).drop();
 
-        mongoConnection.drop();
+        UtilsMongo.dropMongoDB();
         try {
             FileUtils.deleteDirectory(new File(ConfigManager.getProperty("metadata_db_file")));
         } catch (IOException e) {

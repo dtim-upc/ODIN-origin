@@ -24,8 +24,9 @@ public class LAVMappingResource {
 
     private static final Logger LOGGER = Logger.getLogger(LAVMappingResource.class.getName());
 
-    @Inject
-    LAVMappingRepository LAVMappingR;
+    LAVMappingRepository LAVMappingR = new LAVMappingRepository();
+
+    LAVMappingService LAVMappingS = new LAVMappingService();
 
     @GET
     @Path("LAVMapping/")
@@ -56,12 +57,12 @@ public class LAVMappingResource {
     @Consumes("text/plain")
     public Response POST_LAVMappingMapsTo(String body) {
         LOGGER.info("[POST /LAVMapping/mapsTo/] body = " + body);
-        LAVMappingService LAVService = new LAVMappingService();
+//        LAVMappingService LAVMapp = new LAVMappingService();
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
         if (objBody.getAsString("isModified").equals("false")) {
-            objBody = LAVService.createLAVMappingMapsTo(body);
+            objBody = LAVMappingS.createLAVMappingMapsTo(body);
         } else {
-            objBody = LAVService.updateLAVMappingMapsTo(body);
+            objBody = LAVMappingS.updateLAVMappingMapsTo(body);
         }
         return Response.ok(objBody.toJSONString()).build();
     }
@@ -71,8 +72,7 @@ public class LAVMappingResource {
     @Consumes("text/plain")
     public Response POST_LAVMappingSubgraph(String body) {
         LOGGER.info("[POST /LAVMapping/subgraph/] body = " + body);
-        LAVMappingService LAVService = new LAVMappingService();
-        JSONObject objBody = LAVService.createLAVMappingSubgraph(body);
+        JSONObject objBody = LAVMappingS.createLAVMappingSubgraph(body);
         return Response.ok(objBody.toJSONString()).build();
     }
 
@@ -83,9 +83,9 @@ public class LAVMappingResource {
     @DELETE @Path("LAVMapping/{LAVMappingID}")
     @Consumes("text/plain")
     public Response DELETE_LAVMappingByID(@PathParam("LAVMappingID") String LAVMappingID) {
+        //TODO: if element LAVMappingID null throw error or logger
         LOGGER.info("[DELETE /LAVMapping/ "+LAVMappingID);
-        LAVMappingService service = new LAVMappingService();
-        service.delete(LAVMappingID);
+        LAVMappingS.delete(LAVMappingID);
         return Response.ok().build();
     }
 

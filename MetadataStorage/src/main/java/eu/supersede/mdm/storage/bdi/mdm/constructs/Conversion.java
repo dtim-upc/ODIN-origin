@@ -15,8 +15,7 @@ import java.util.logging.Logger;
  */
 public class Conversion {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     private static final Logger LOGGER = Logger.getLogger(Conversion.class.getName());
     //private JSONObject wrapper = new JSONObject();

@@ -34,11 +34,9 @@ import java.time.LocalDateTime;
 public class SchemaExtractionResource {
     private static final Logger LOGGER = Logger.getLogger(SchemaExtractionResource.class.getName());
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     @POST
     @Path("jsonSchema/")

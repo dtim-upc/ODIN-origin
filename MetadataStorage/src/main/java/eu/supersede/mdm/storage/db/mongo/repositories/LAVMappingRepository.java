@@ -22,8 +22,7 @@ public class LAVMappingRepository {
 
     private MongoCollection<LAVMappingModel> LAVCollection;
 
-    @PostConstruct
-    public void init() {
+    public LAVMappingRepository() {
         LAVCollection = MongoConnection.getInstance().getDatabase().getCollection("LAVMappings", LAVMappingModel.class);
     }
 

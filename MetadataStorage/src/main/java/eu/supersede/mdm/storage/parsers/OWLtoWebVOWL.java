@@ -17,7 +17,7 @@ import java.util.List;
 public class OWLtoWebVOWL {
 
     @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     String prefix = "G";
     String namespace = "";

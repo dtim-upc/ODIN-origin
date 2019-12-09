@@ -21,17 +21,15 @@ import javax.inject.Inject;
 
 public class WrapperService {
 
-    @Inject
-    LAVMappingRepository LAVMappingR;
+    LAVMappingRepository LAVMappingR = new LAVMappingRepository();
 
-    @Inject
-    WrapperRepository wrapperR;
+    WrapperRepository wrapperR = new WrapperRepository();
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
+
+    LAVMappingService delLAV = new LAVMappingService();
 
     public void verifyAttributesCreation(JSONArray attributes){
 
@@ -95,7 +93,6 @@ public class WrapperService {
         //Remove its LAV mapping if exists & Update the metadata for the affected data source in MongoDB
         LAVMappingModel LAVMappingObj = LAVMappingR.findByField(LAVMappingMongo.FIELD_wrapperID.val(),wrapperObject.getWrapperID());
         if(LAVMappingObj != null){
-            LAVMappingService delLAV = new LAVMappingService();
             delLAV.delete(LAVMappingObj,wrapperObject,dataSourceObject);
         }
         //Remove its metadata from MongoDB

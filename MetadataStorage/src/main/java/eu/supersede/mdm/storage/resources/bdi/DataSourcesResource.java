@@ -27,14 +27,11 @@ import java.util.logging.Logger;
 public class DataSourcesResource {
     private static final Logger LOGGER = Logger.getLogger(DataSourcesResource.class.getName());
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    IntegratedDataSourcesRepository integratedDSR;
+    IntegratedDataSourcesRepository integratedDSR = new IntegratedDataSourcesRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     @GET
     @Path("bdiIntegratedDataSources/")
@@ -60,7 +57,6 @@ public class DataSourcesResource {
                 dataSources.add(document);
             }
         });
-        //TODO:(Javier) check if produces same result.
         return Response.ok(UtilsMongo.serializeListJsonAsString(dataSources)).build();
     }
 

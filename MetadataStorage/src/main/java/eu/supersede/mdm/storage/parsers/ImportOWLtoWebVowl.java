@@ -14,8 +14,7 @@ import java.util.List;
 
 public class ImportOWLtoWebVowl {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     String prefix = "G";
     String namespace = "";

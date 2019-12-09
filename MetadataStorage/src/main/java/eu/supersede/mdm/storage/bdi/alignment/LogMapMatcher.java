@@ -16,8 +16,7 @@ import java.util.Set;
  */
 public class LogMapMatcher {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     private String iri_onto1;
     private String iri_onto2;

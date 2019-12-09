@@ -12,8 +12,7 @@ import java.util.Objects;
 
 public class Wrapper extends RelationalOperator {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     private String wrapper;
 

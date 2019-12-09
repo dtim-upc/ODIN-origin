@@ -17,20 +17,15 @@ import javax.inject.Inject;
 
 public class LAVMappingService {
 
-    @Inject
-    WrapperRepository wrapperR;
+    WrapperRepository wrapperR = new WrapperRepository();
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR =new  DataSourceRepository();
 
-    @Inject
-    LAVMappingRepository LAVMappingR;
+    LAVMappingRepository LAVMappingR = new LAVMappingRepository();
 
-    @Inject
-    GlobalGraphRepository globalGR;
+    GlobalGraphRepository globalGR = new GlobalGraphRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     //delete operations
 
@@ -87,8 +82,7 @@ public class LAVMappingService {
         WrapperModel wrapper = wrapperR.findByWrapperID(objBody.getAsString("wrapperID"));
         DataSourceModel dataSource =  dataSourceR.findByDataSourceID(wrapper.getDataSourceID());
 
-        LAVMappingService updateLAVM = new LAVMappingService();
-        updateLAVM.updateTriples(((JSONArray) objBody.get("sameAs")), objBody.getAsString("LAVMappingID"),
+        updateTriples(((JSONArray) objBody.get("sameAs")), objBody.getAsString("LAVMappingID"),
                 wrapper.getIri(), dataSource.getIri());
 
         return objBody;
@@ -119,11 +113,11 @@ public class LAVMappingService {
                 graphO.addTriple(wIRI, sourceIRI, relIRI, targetIRI);
 
                 //Extend to also incorporate the type of the added triple. This is obtained from the original global graph
-                String typeOfSource = graphO.getObjectsFromGraphWhere(globalGraphIRI,sourceIRI,Namespaces.rdf.val() + "type")
-                        .next().get("o").toString();
+                String typeOfSource = graphO.runAQuery("SELECT ?t WHERE { GRAPH <" + globalGraphIRI + "> { <" + sourceIRI + "> <"
+                        + Namespaces.rdf.val() + "type> ?t } }").next().get("t").toString();
 
-               String typeOfTarget = graphO.getObjectsFromGraphWhere(globalGraphIRI,targetIRI,Namespaces.rdf.val() + "type")
-                        .next().get("o").toString();
+               String typeOfTarget = graphO.runAQuery("SELECT ?t WHERE { GRAPH <" + globalGraphIRI + "> { <" + targetIRI + "> <"
+                       + Namespaces.rdf.val() + "type> ?t } }").next().get("t").toString();
 
                 graphO.addTriple(wIRI,sourceIRI,Namespaces.rdf.val() + "type", typeOfSource);
                 graphO.addTriple(wIRI, targetIRI, Namespaces.rdf.val() + "type", typeOfTarget);

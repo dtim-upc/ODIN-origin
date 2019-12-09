@@ -20,11 +20,9 @@ import java.util.UUID;
 
 public class ImportOWLtoGlobalGraph {
 
-    @Inject
-    GlobalGraphRepository globalGraphR;
+    GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     public void convert(String filePath, String name){
 

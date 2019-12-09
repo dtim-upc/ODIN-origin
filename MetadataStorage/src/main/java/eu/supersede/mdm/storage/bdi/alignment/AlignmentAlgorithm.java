@@ -18,8 +18,7 @@ import java.util.HashMap;
  */
 public class AlignmentAlgorithm {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     private JSONObject basicInfo;
 

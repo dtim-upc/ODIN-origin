@@ -3,6 +3,8 @@ package eu.supersede.mdm.storage.resources;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.jena.JenaConnection;
+import eu.supersede.mdm.storage.db.mongo.MongoConnection;
 import eu.supersede.mdm.storage.db.mongo.models.DataSourceModel;
 import eu.supersede.mdm.storage.db.mongo.models.WrapperModel;
 import eu.supersede.mdm.storage.db.mongo.models.fields.WrapperMongo;
@@ -38,14 +40,11 @@ import java.util.stream.Collectors;
 @Path("metadataStorage")
 public class OMQResource {
 
-    @Inject
-    WrapperRepository wrapperR;
+    WrapperRepository wrapperR = new WrapperRepository();
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     @POST @Path("omq/fromGraphicalToSPARQL")
     @Consumes("text/plain")
@@ -96,7 +95,7 @@ public class OMQResource {
         //String namedGraph = objBody.getAsString("namedGraph");
         //QueryRewriting qr = new QueryRewriting_DAG(SPARQL.replace("\n"," "));
 
-        Dataset T = Utils.getTDBDataset();
+        Dataset T = JenaConnection.getInstance().getTDBDataset();
         T.begin(ReadWrite.READ);
         Set<ConjunctiveQuery> UCQ = null;
         try {

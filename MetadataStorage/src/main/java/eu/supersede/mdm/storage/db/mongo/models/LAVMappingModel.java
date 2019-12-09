@@ -1,5 +1,6 @@
 package eu.supersede.mdm.storage.db.mongo.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import org.bson.codecs.pojo.annotations.BsonProperty;
@@ -50,12 +51,12 @@ public class LAVMappingModel {
         this.globalGraphID = globalGraphID;
     }
 
-    @BsonProperty("LAVMappingID")
+    @BsonProperty("LAVMappingID") @JsonProperty("LAVMappingID")
     public String getLAVMappingID() {
         return LAVMappingID;
     }
 
-    @BsonProperty("LAVMappingID")
+    @BsonProperty("LAVMappingID") @JsonProperty("LAVMappingID")
     public void setLAVMappingID(String LAVMappingID) {
         this.LAVMappingID = LAVMappingID;
     }

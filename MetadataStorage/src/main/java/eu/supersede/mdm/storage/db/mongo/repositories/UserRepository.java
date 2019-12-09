@@ -18,8 +18,7 @@ public class UserRepository {
     private final String FIELD_USERNAME = "username";
     private MongoCollection<UserModel> usersCollection;
 
-    @PostConstruct
-    public void init() {
+    public UserRepository() {
         usersCollection = MongoConnection.getInstance().getDatabase().getCollection("users", UserModel.class);
     }
 

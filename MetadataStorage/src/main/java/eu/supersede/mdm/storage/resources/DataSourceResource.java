@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.crypto.Data;
 import java.util.logging.Logger;
 
 /**
@@ -28,11 +29,11 @@ public class DataSourceResource {
 
     private static final Logger LOGGER = Logger.getLogger(DataSourceResource.class.getName());
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
+
+    DataSourceService dsService = new DataSourceService();
 
     @GET
     @Path("dataSource/")
@@ -98,8 +99,7 @@ public class DataSourceResource {
     @Consumes("text/plain")
     public Response DELETE_DataSourceByID(@PathParam("dataSourceID") String dataSourceID) {
         LOGGER.info("[DELETE /dataSource/ "+dataSourceID);
-        DataSourceService del = new DataSourceService();
-        del.delete(dataSourceID);
+        dsService.delete(dataSourceID);
         return Response.ok().build();
     }
 

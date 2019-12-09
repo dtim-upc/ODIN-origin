@@ -3,12 +3,12 @@ package eu.supersede.mdm.storage.resources.bdi;
 import com.mongodb.client.MongoCollection;
 import eu.supersede.mdm.storage.bdi.extraction.Namespaces;
 import eu.supersede.mdm.storage.db.jena.GraphOperations;
+import eu.supersede.mdm.storage.db.jena.JenaConnection;
 import eu.supersede.mdm.storage.db.mongo.repositories.DataSourceRepository;
 import eu.supersede.mdm.storage.db.mongo.repositories.IntegratedDataSourcesRepository;
 import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
 import eu.supersede.mdm.storage.util.BdiSQLiteUtils;
 import eu.supersede.mdm.storage.util.ConfigManager;
-import eu.supersede.mdm.storage.util.RDFUtil;
 import eu.supersede.mdm.storage.util.Utils;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -36,15 +36,11 @@ import java.util.logging.Logger;
 public class SchemaIntegrationHelper {
     private static final Logger LOGGER = Logger.getLogger(SchemaIntegrationHelper.class.getName());
 
-    @Inject
-    IntegratedDataSourcesRepository integratedDSR;
+    IntegratedDataSourcesRepository integratedDSR = new IntegratedDataSourcesRepository();
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    GraphOperations graphO;
-
+    GraphOperations graphO = new GraphOperations();
     public SchemaIntegrationHelper() {
     }
 
@@ -111,7 +107,7 @@ public class SchemaIntegrationHelper {
 
     private HashMap<String, String> getPropertiesInfo(JSONObject objBody, String integratedIRI) {
         HashMap<String, String> propCharacteristics = new HashMap<String, String>();
-        Dataset ds = Utils.getTDBDataset();
+        Dataset ds = JenaConnection.getInstance().getTDBDataset();
         ds.begin(ReadWrite.WRITE);
         Model graph = ds.getNamedModel(integratedIRI);
         OntModel ontModel = org.apache.jena.rdf.model.ModelFactory.createOntologyModel();
@@ -135,7 +131,6 @@ public class SchemaIntegrationHelper {
         graph.commit();
         graph.close();
         ds.commit();
-        ds.close();
         return propCharacteristics;
     }
 
@@ -202,7 +197,7 @@ public class SchemaIntegrationHelper {
                 + dataSource1Info.getAsString("dataSourceID") + "-"
                 + dataSource2Info.getAsString("dataSourceID");
         LOGGER.info("Integrated IRI :" + integratedIRI);
-        Dataset ds = Utils.getTDBDataset();
+        Dataset ds = JenaConnection.getInstance().getTDBDataset();
         ds.begin(ReadWrite.WRITE);
 
         Model ds1Model = ds.getNamedModel(dataSource1Info.getAsString("schema_iri"));
@@ -218,7 +213,7 @@ public class SchemaIntegrationHelper {
         ds.close();
 
         // Add the integratedModel into TDB
-        Dataset integratedDataset = Utils.getTDBDataset();
+        Dataset integratedDataset = JenaConnection.getInstance().getTDBDataset();
         integratedDataset.begin(ReadWrite.WRITE);
         Model model = integratedDataset.getNamedModel(integratedIRI);
         model.add(integratedModel);
@@ -238,34 +233,26 @@ public class SchemaIntegrationHelper {
     }
 
     public String getDataSourceInfo(String dataSourceId) {
-
         return UtilsMongo.ToJsonString(dataSourceR.findByDataSourceID(dataSourceId));
     }
 
     public String getIntegratedDataSourceInfo(String integratedDataSourceId) {
-
         return UtilsMongo.ToJsonString(integratedDSR.findByDataSourceID(integratedDataSourceId));
     }
 
     private void addIntegratedDataSourceInfoAsMongoCollection(JSONObject objBody) {
         LOGGER.info("Successfully Added to MongoDB");
-
-        //TODO: (javier) check if works
         integratedDSR.create(objBody.toJSONString());
     }
 
 
-
     public void deleteDataSourceInfo(String dataSourceID, String collectionType) {
-
-        MongoCollection collection = null;
         if (collectionType.equals("INTEGRATED")) {
             integratedDSR.deleteByDataSourceID(dataSourceID);
         }
         if (collectionType.equals("DATA-SOURCE")) {
             dataSourceR.deleteByDataSourceID(dataSourceID);
         }
-
     }
 
     public List<String> getSparqlQueryResult(String namedGraph, String query) {
@@ -289,7 +276,7 @@ public class SchemaIntegrationHelper {
 
     public String writeToFile(String iri, String integratedIRI) {
         // Write the integrated Graph into file by reading from TDB
-        Dataset integratedDataset = Utils.getTDBDataset();
+        Dataset integratedDataset = JenaConnection.getInstance().getTDBDataset();
         integratedDataset.begin(ReadWrite.WRITE);
         Model model = integratedDataset.getNamedModel(integratedIRI);
         //System.out.println("iri: " + iri);

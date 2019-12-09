@@ -40,7 +40,7 @@ public class ApacheMain {
         config.packages("eu.supersede.mdm.storage.errorhandling");
         config.register(ApiListingResource.class);
         config.register(SwaggerSerializers.class);
-        config.register(new MyApplicationBinder());
+//        config.register(new MyApplicationBinder());
 
         configSwagger();
 

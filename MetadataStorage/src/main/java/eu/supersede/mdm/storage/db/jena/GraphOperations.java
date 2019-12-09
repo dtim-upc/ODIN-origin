@@ -31,14 +31,12 @@ import java.util.List;
 
 public class GraphOperations {
 
-    @Inject
-    SelectQuery selectQ;
+    SelectQuery selectQ = new SelectQuery();
 
 
     private Dataset ds;
 
-    @PostConstruct
-    public void init() {
+    public  GraphOperations() {
         ds = JenaConnection.getInstance().getTDBDataset();
     }
 

@@ -12,25 +12,21 @@ import javax.inject.Inject;
 import java.util.List;
 
 public class DataSourceService {
-    @Inject
-    LAVMappingRepository LAVMappingR;
+    LAVMappingRepository LAVMappingR = new LAVMappingRepository();
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    WrapperRepository wrapperR;
+    WrapperRepository wrapperR = new WrapperRepository();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
+
+    LAVMappingService LAVMappingService = new LAVMappingService();
+
+    WrapperService wrapperService =new WrapperService();
 
     public void delete(String dataSourceID){
 
         DataSourceModel dataSourceObject = dataSourceR.findByDataSourceID(dataSourceID);
-
-        WrapperService delW = new WrapperService();
-        LAVMappingService delLAV = new LAVMappingService();
-
         List<String> wrappers =  dataSourceObject.getWrappers();
 
         // For all involved wrappers, apply the same logic as the wrapper removal.
@@ -43,9 +39,9 @@ public class DataSourceService {
                 graphO.removeGraph(wrapperIRI);
             if(LAVMappingObj != null){
 
-                delLAV.removeLAVMappingFromMongo(LAVMappingObj.getLAVMappingID());
+                LAVMappingService.removeLAVMappingFromMongo(LAVMappingObj.getLAVMappingID());
             }
-            delW.removeWrapperMongo(wrapperID);
+            wrapperService.removeWrapperMongo(wrapperID);
         }
         //Remove its named graph
         graphO.removeGraph(dataSourceObject.getIri());

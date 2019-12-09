@@ -21,9 +21,7 @@ public class GlobalGraphRepository {
 
     private MongoCollection<GlobalGraphModel> globalGraphCollection;
 
-
-    @PostConstruct
-    public void init() {
+    public GlobalGraphRepository() {
         globalGraphCollection = MongoConnection.getInstance().getDatabase().getCollection("globalGraphs", GlobalGraphModel.class);
     }
 

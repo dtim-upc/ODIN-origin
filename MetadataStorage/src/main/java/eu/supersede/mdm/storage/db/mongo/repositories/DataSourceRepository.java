@@ -23,8 +23,7 @@ public class DataSourceRepository {
 
     private MongoCollection<DataSourceModel> dataSourceCollection;
 
-    @PostConstruct
-    public void init() {
+    public DataSourceRepository() {
         dataSourceCollection = MongoConnection.getInstance().getDatabase().getCollection("dataSources", DataSourceModel.class);
     }
 
@@ -64,7 +63,8 @@ public class DataSourceRepository {
         //Save metadata
         objBody.put("dataSourceID", UUID.randomUUID().toString().replace("-",""));
         objBody.put("iri", iri);
-        objBody.put("bootstrappingType", "manual");
+        if(!objBody.containsKey("bootstrappingType"))
+            objBody.put("bootstrappingType", "manual");
 
         create(objBody.toJSONString());
 

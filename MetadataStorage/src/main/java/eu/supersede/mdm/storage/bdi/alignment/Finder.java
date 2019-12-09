@@ -19,8 +19,7 @@ import java.util.stream.Collectors;
 
 public class Finder {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     private String iriA = "";
     private String iriB = "";

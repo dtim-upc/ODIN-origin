@@ -26,8 +26,7 @@ import java.util.UUID;
 @Path("metadataStorage")
 public class GraphResource {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
     /**
      * Get the content of the artifact, i.e. the triples
      */

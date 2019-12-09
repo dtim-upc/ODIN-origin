@@ -33,17 +33,13 @@ public class WrapperResource {
 
     private static final Logger LOGGER = Logger.getLogger(WrapperResource.class.getName());
 
-    @Inject
-    WrapperRepository wrapperR;
+    WrapperRepository wrapperR = new WrapperRepository();
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    @Inject
-    WrapperService wrapperS;
+    WrapperService wrapperS = new WrapperService();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     @GET
     @Path("wrapper/")

@@ -21,14 +21,11 @@ import javax.inject.Inject;
  */
 public class MDMWrapper {
 
-    @Inject
-    GlobalGraphRepository globalGraphR;
+    GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    @Inject
-    WrapperService wrapperS;
+    WrapperService wrapperS = new WrapperService();
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     private String mdmGgIri;
     private JSONObject globalGraphInfo;

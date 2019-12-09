@@ -39,19 +39,16 @@ public class MDMLavMapping {
     private List<String> wrappersCoveringGlobalGraph;
     private LAVMappingModel lavMapping;
     private List<LAVsameAs> featureAndAttributes;
-    @Inject
-    GlobalGraphRepository globalGraphR;
-    @Inject
-    WrapperRepository wrapperR;
 
-    @Inject
-    DataSourceRepository dataSourceR;
+    GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    @Inject
-    LAVMappingService LAVService;
+    WrapperRepository wrapperR = new WrapperRepository();
 
-    @Inject
-    GraphOperations graphO;
+    DataSourceRepository dataSourceR = new DataSourceRepository();
+
+    GraphOperations graphO = new GraphOperations();
+
+    LAVMappingService LAVService = new LAVMappingService();
 
     /*Map<feature, List< Tuple3<localName, sourceName, IRI>, Tuple3<,,>,....*/
     private Map<String, List<Tuple3<String, String, String>>> features = new HashMap<>();
@@ -166,12 +163,9 @@ public class MDMLavMapping {
 
             // Call LAV Mapping Resource to save the LAV mapping info accordingly
             JSONObject lavMappingResourceInfo = LAVService.createLAVMappingMapsTo(UtilsMongo.ToJsonString(lavMapping) );
-//            JSONObject lavMappingResourceInfo = LAVMappingResource.createLAVMappingMapsTo(lavMapping.toJSONString());
-            //System.out.println(lavMappingResourceInfo);
+           //System.out.println(lavMappingResourceInfo);
             wrapperInfo.setLAVMappingID(lavMappingResourceInfo.getAsString("LAVMappingID"));
-//            wrapperInfo.put("LAVMappingID", lavMappingResourceInfo.getAsString("LAVMappingID"));
             wrappersMongoInformation.add(wrapperInfo);
-//            client.close();
         });
 
     }

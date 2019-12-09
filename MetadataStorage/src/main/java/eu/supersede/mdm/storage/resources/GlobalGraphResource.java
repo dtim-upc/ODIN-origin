@@ -12,6 +12,8 @@ import io.swagger.annotations.*;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+import org.apache.jena.shacl.lib.G;
+import org.glassfish.jersey.process.internal.RequestScoped;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -31,11 +33,14 @@ public class GlobalGraphResource {
             "{} request finished with inputs: {} and return value: {} in {}ms";
     GlobalGraphValidator validator = new GlobalGraphValidator();
 
-    @Inject
-    GlobalGraphRepository globalGraphR;
+//    @Inject
+    GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    @Inject
-    GraphOperations graphO;
+//    @Inject
+    GraphOperations graphO = new GraphOperations();
+
+//    @Inject
+    GlobalGraphService globalService = new GlobalGraphService();
 
     @ApiOperation(value = "Gets all global graphs registered",produces = MediaType.TEXT_PLAIN)
     @ApiResponses(value = {@ApiResponse(code = 200, message = "OK")})
@@ -45,7 +50,6 @@ public class GlobalGraphResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response GET_globalGraph() {
         LOGGER.info("[GET /GET_globalGraph/]");
-
         String json = UtilsMongo.serializeListJsonAsString(globalGraphR.findAll());
         return Response.ok(json).build();
     }
@@ -183,8 +187,7 @@ public class GlobalGraphResource {
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
         JSONObject objMod = (JSONObject) objBody.get("modified");
         if(objMod.getAsString("isModified").equals("true")){
-            GlobalGraphService u = new GlobalGraphService();
-            u.updateTriples(objMod,namedGraph);
+            globalService.updateTriples(objMod,namedGraph);
         }else{
             graphO.loadTTL(namedGraph,objBody.getAsString("ttl"));
         }
@@ -214,9 +217,8 @@ public class GlobalGraphResource {
     public Response DELETE_nodeGlobalGraph(@PathParam("namedGraph") String namedGraph, String body) {
         LOGGER.info("[DELETE /globalGraph/ "+namedGraph+" /node");
 
-        GlobalGraphService del = new GlobalGraphService();
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
-        del.deleteNode(namedGraph,objBody.getAsString("iri"));
+        globalService.deleteNode(namedGraph,objBody.getAsString("iri"));
         return Response.ok().build();
     }
 
@@ -229,9 +231,9 @@ public class GlobalGraphResource {
     public Response DELETE_propertyGlobalGraph(@PathParam("namedGraph") String namedGraph, String body) {
         LOGGER.info("[DELETE /globalGraph/ "+namedGraph+" /property");
 
-        GlobalGraphService del = new GlobalGraphService();
+
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
-        del.deleteProperty(namedGraph,objBody.getAsString("sIRI"),objBody.getAsString("pIRI"),objBody.getAsString("oIRI"));
+        globalService.deleteProperty(namedGraph,objBody.getAsString("sIRI"),objBody.getAsString("pIRI"),objBody.getAsString("oIRI"));
         return Response.ok().build();
     }
 
@@ -243,8 +245,8 @@ public class GlobalGraphResource {
     public Response DELETE_GlobalGraph(@PathParam("globalGraphID") String globalGraphID) {
         LOGGER.info("[DELETE /globalGraph/ "+globalGraphID);
 
-        GlobalGraphService del = new GlobalGraphService();
-        del.deleteGlobalGraph(globalGraphID);
+
+        globalService.deleteGlobalGraph(globalGraphID);
         return Response.ok().build();
     }
 

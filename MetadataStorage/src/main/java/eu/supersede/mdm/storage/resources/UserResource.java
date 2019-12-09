@@ -18,8 +18,7 @@ import java.util.List;
 @Path("metadataStorage")
 public class UserResource {
 
-    @Inject
-    UserRepository usersR;
+    UserRepository usersR = new UserRepository();
 
     @GET @Path("users")
     @Consumes(MediaType.TEXT_PLAIN)

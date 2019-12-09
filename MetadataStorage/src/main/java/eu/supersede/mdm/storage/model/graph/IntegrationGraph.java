@@ -13,8 +13,7 @@ import java.util.function.Supplier;
 
 public class IntegrationGraph extends DefaultDirectedGraph<CQVertex, IntegrationEdge> {
 
-    @Inject
-    GraphOperations graphO;
+    GraphOperations graphO = new GraphOperations();
 
     public IntegrationGraph() {
         super(IntegrationEdge.class);

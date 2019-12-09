@@ -1,6 +1,7 @@
 package eu.supersede.mdm.storage.db.mongo.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.supersede.mdm.storage.db.mongo.MongoConnection;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +11,9 @@ public class UtilsMongo {
 
     public final static ObjectMapper mapper = new ObjectMapper();
 
+    public static void dropMongoDB(){
+        MongoConnection.getInstance().getDatabase().drop();
+    }
 
     public static String ToJsonString(Object obj){
         try {
