@@ -56,12 +56,6 @@ public class AlignmentAlgorithm {
 
                             //TODO Case 1 -  When classes of the properties are aligned
                             if (result.size() > 0) {
-                                //System.out.println("CLASSES PRESENT");
-                                // Remove Properties from aligned Classes
-                                //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), data.get("DomainPropA"), data.get("RangePropA"));
-                                //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), data.get("DomainPropB"), data.get("RangePropB"));
-                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
-                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
 
                                 Object[] rowResult = ((JSONArray) result.get(0)).toArray();
                                 HashMap<String, String> sqliteRow = new HashMap<>();
@@ -102,13 +96,6 @@ public class AlignmentAlgorithm {
                             } else {
                                 //TODO Case 2 -  When classes of the properties are not aligned
                                 String newGlobalGraphProperty = basicInfo.getAsString("integratedIRI") + "/" + ResourceFactory.createResource(data.get("PropertyA")).getLocalName();
-
-                                //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), data.get("DomainPropA"), data.get("RangePropA"));
-                                //RDFUtil.removeProperty(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), data.get("DomainPropB"), data.get("RangePropB"));
-
-                                //removePropertyTriples(data);
-                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
-                                //graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDF.type.getURI().toString(), RDF.Property.getURI().toString());
 
                                 graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyA"), RDFS.DOMAIN.toString(), data.get("DomainPropA"));
                                 graphO.removeTriple(basicInfo.getAsString("integratedIRI"), data.get("PropertyB"), RDFS.DOMAIN.toString(), data.get("DomainPropB"));

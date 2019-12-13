@@ -105,11 +105,8 @@ public class SchemaIntegrationResource {
 
                     alignmentsArray = tempAlignmentsArray;
 
-                    /*System.out.println("Detected by LogMap: ");
-                    System.out.println(tempAlignmentsArray.toJSONString());*/
 
                     alignmentsArray.addAll(filterDuplicateObjects);
-                    //System.out.println(alignmentsArray.toJSONString());
 
                 }
             } // end else condition here
@@ -158,7 +155,7 @@ public class SchemaIntegrationResource {
 
             //System.out.println(checkIfQueryContainsResult[0] + " " + checkIfQueryContainsResult[1]);
             if (checkIfQueryContainsResult[0] != null && checkIfQueryContainsResult[1] != null) {
-                LOGGER.info("Alignment Succeeded");
+                LOGGER.info("Alignment Succeeded*");
                 return Response.ok(("AlignmentSucceeded")).build();
             } else {
                 LOGGER.info("Alignment Failed");

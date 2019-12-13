@@ -68,7 +68,6 @@ public class LogMapMatcher {
 
     private void storeMappingsInTripleStore() {
         graphO.addBatchOfTriples(alignments_iri,alignmentsTriples);
-//        RDFUtil.addBatchOfTriples(alignments_iri, alignmentsTriples);
     }
 
     private void iterateOverMappings(Set<MappingObjectStr> mappings) throws Exception {

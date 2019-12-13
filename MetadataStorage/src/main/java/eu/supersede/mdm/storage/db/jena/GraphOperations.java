@@ -77,7 +77,7 @@ public class GraphOperations {
     public void removeTriple(String namedGraph, String s, String p, String o) {
         Txn.executeWrite(ds, ()-> {
             Model graph = ds.getNamedModel(namedGraph);
-            graph.add(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
+            graph.remove(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
         });
     }
 
@@ -160,6 +160,18 @@ public class GraphOperations {
                 ds.removeNamedModel(iri);
             });
         }
+    }
+
+    public Model getGraph(String iri){
+
+            return Txn.calculateRead(ds, ()-> {
+                if(ds.containsNamedModel(iri)){
+                    Model m = ds.getNamedModel(iri);
+                    return ModelFactory.createModelForGraph(m.getGraph());
+                }
+                return null;
+
+            });
     }
 
 

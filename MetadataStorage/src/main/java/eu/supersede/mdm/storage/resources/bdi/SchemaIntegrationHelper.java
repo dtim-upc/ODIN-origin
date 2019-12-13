@@ -20,6 +20,7 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.system.Txn;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -107,30 +108,30 @@ public class SchemaIntegrationHelper {
 
     private HashMap<String, String> getPropertiesInfo(JSONObject objBody, String integratedIRI) {
         HashMap<String, String> propCharacteristics = new HashMap<String, String>();
+
         Dataset ds = JenaConnection.getInstance().getTDBDataset();
-        ds.begin(ReadWrite.WRITE);
-        Model graph = ds.getNamedModel(integratedIRI);
-        OntModel ontModel = org.apache.jena.rdf.model.ModelFactory.createOntologyModel();
-        ontModel.addSubModel(graph);
 
-        //System.out.println("if Properties: -> Printing Domain and Range: ... ");
-        //System.out.println(ontModel.getOntProperty(objBody.getAsString("s")).getLocalName());
-        //System.out.println(ontModel.getOntProperty(objBody.getAsString("p")).getLocalName());
+        Txn.executeWrite(ds, ()-> {
+            Model graph = ds.getNamedModel(integratedIRI);
+            OntModel ontModel = org.apache.jena.rdf.model.ModelFactory.createOntologyModel();
+            ontModel.addSubModel(graph);
 
-        propCharacteristics.put("sDomain", ontModel.getOntProperty(objBody.getAsString("s")).getDomain().toString());
-        propCharacteristics.put("sRange", ontModel.getOntProperty(objBody.getAsString("s")).getRange().toString());
-        propCharacteristics.put("pDomain", ontModel.getOntProperty(objBody.getAsString("p")).getDomain().toString());
-        propCharacteristics.put("pRange", ontModel.getOntProperty(objBody.getAsString("p")).getRange().toString());
+            //System.out.println("if Properties: -> Printing Domain and Range: ... ");
+            //System.out.println(ontModel.getOntProperty(objBody.getAsString("s")).getLocalName());
+            //System.out.println(ontModel.getOntProperty(objBody.getAsString("p")).getLocalName());
 
-        if (ontModel.getOntProperty(objBody.getAsString("s")).getLocalName().equals(ontModel.getOntProperty(objBody.getAsString("p")).getLocalName())) {
-            propCharacteristics.put("hasSameName", "TRUE");
-        } else {
-            propCharacteristics.put("hasSameName", "FALSE");
-        }
-        ontModel.close();
-        graph.commit();
-        graph.close();
-        ds.commit();
+            propCharacteristics.put("sDomain", ontModel.getOntProperty(objBody.getAsString("s")).getDomain().toString());
+            propCharacteristics.put("sRange", ontModel.getOntProperty(objBody.getAsString("s")).getRange().toString());
+            propCharacteristics.put("pDomain", ontModel.getOntProperty(objBody.getAsString("p")).getDomain().toString());
+            propCharacteristics.put("pRange", ontModel.getOntProperty(objBody.getAsString("p")).getRange().toString());
+
+            if (ontModel.getOntProperty(objBody.getAsString("s")).getLocalName().equals(ontModel.getOntProperty(objBody.getAsString("p")).getLocalName())) {
+                propCharacteristics.put("hasSameName", "TRUE");
+            } else {
+                propCharacteristics.put("hasSameName", "FALSE");
+            }
+        }) ;
+
         return propCharacteristics;
     }
 
@@ -198,37 +199,25 @@ public class SchemaIntegrationHelper {
                 + dataSource2Info.getAsString("dataSourceID");
         LOGGER.info("Integrated IRI :" + integratedIRI);
         Dataset ds = JenaConnection.getInstance().getTDBDataset();
-        ds.begin(ReadWrite.WRITE);
 
-        Model ds1Model = ds.getNamedModel(dataSource1Info.getAsString("schema_iri"));
-        Model ds2Model = ds.getNamedModel(dataSource2Info.getAsString("schema_iri"));
-        LOGGER.info("Size of ds1 Model: " + ds1Model.size());
-        LOGGER.info("Size of ds2 Model: " + ds2Model.size());
+        Txn.executeWrite(ds, ()-> {
+            Model ds1Model = ds.getNamedModel(dataSource1Info.getAsString("schema_iri"));
+            Model ds2Model = ds.getNamedModel(dataSource2Info.getAsString("schema_iri"));
+            LOGGER.info("Size of ds1 Model: " + ds1Model.size());
+            LOGGER.info("Size of ds2 Model: " + ds2Model.size());
 
-        Model integratedModel = ds1Model.union(ds2Model);
-        ds1Model.commit();
-        ds2Model.commit();
-        //integratedModel.commit();
-        ds.commit();
-        ds.close();
+            Model integratedModel = ds1Model.union(ds2Model);
 
-        // Add the integratedModel into TDB
-        Dataset integratedDataset = JenaConnection.getInstance().getTDBDataset();
-        integratedDataset.begin(ReadWrite.WRITE);
-        Model model = integratedDataset.getNamedModel(integratedIRI);
-        model.add(integratedModel);
-        LOGGER.info("Size of Integrated Model: " + integratedModel.size());
+            graphO.loadModel(integratedIRI,integratedModel);
+            LOGGER.info("Size of Integrated Model: " + integratedModel.size());
 
-        try {
-            model.write(new FileOutputStream("Output/integrated-model.ttl"), "TURTLE");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        model.commit();
-        model.close();
-        integratedDataset.commit();
-        integratedDataset.end();
-        integratedDataset.close();
+            try {
+                integratedModel.write(new FileOutputStream("Output/integrated-model.ttl"), "TURTLE");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }) ;
+
         return integratedIRI;
     }
 
@@ -275,23 +264,20 @@ public class SchemaIntegrationHelper {
     }
 
     public String writeToFile(String iri, String integratedIRI) {
-        // Write the integrated Graph into file by reading from TDB
-        Dataset integratedDataset = JenaConnection.getInstance().getTDBDataset();
-        integratedDataset.begin(ReadWrite.WRITE);
-        Model model = integratedDataset.getNamedModel(integratedIRI);
-        //System.out.println("iri: " + iri);
         String integratedModelFileName = iri + ".ttl";
-        //String integratedModelFileName = objBody.getAsString("dataSource1Name") + "-" + objBody.getAsString("dataSource2Name") + ".ttl";
-        try {
-            model.write(new FileOutputStream(ConfigManager.getProperty("output_path") + integratedModelFileName), "TURTLE");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        model.commit();
-        model.close();
-        integratedDataset.commit();
-        integratedDataset.end();
-        integratedDataset.close();
+        // Write the integrated Graph into file by reading from TDB
+        Dataset ds = JenaConnection.getInstance().getTDBDataset();
+        Txn.executeWrite(ds, ()-> {
+            Model model = ds.getNamedModel(integratedIRI);
+            //System.out.println("iri: " + iri);
+
+            //String integratedModelFileName = objBody.getAsString("dataSource1Name") + "-" + objBody.getAsString("dataSource2Name") + ".ttl";
+            try {
+                model.write(new FileOutputStream(ConfigManager.getProperty("output_path") + integratedModelFileName), "TURTLE");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
         return integratedModelFileName;
     }
 
