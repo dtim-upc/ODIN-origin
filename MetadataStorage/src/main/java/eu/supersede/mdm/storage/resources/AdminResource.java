@@ -1,8 +1,12 @@
 package eu.supersede.mdm.storage.resources;
 
+import com.mongodb.MongoClient;
 import eu.supersede.mdm.storage.db.mongo.utils.UtilsMongo;
 import eu.supersede.mdm.storage.util.ConfigManager;
+import eu.supersede.mdm.storage.util.Utils;
 import org.apache.commons.io.FileUtils;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -45,17 +49,17 @@ public class AdminResource {
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.TEXT_PLAIN)
     public Response GET_admin_demoprepare() {
-        /*System.out.println("[GET /admin/demoPrepare/");
+        System.out.println("[GET /admin/demoPrepare/");
         MongoClient client = Utils.getMongoDBClient();
-        Bson command = new Document("eval","db.copyDatabase(\"edbt_copy\",\"MDM_MetadataStorage\",\"127.0.0.1\")");
-        client.getDatabase("edbt_copy").runCommand(command);
+        Bson command = new Document("eval","db.copyDatabase(\"MDM_MetadataStorage_WISCENTD\",\"MDM_MetadataStorage\",\"localhost\")");
+        client.getDatabase("MDM_MetadataStorage_WISCENTD").runCommand(command);
 
         try {
-            FileUtils.copyDirectory(new File("/home/snadal/UPC/Projects/MDM/MetadataStorage/MDM_TDBMDM_TDB_edbt"),
-                    new File("/home/snadal/UPC/Projects/MDM/MetadataStorage/MDM_TDBMDM_TDB"));
+            FileUtils.copyDirectory(new File("/home/snadal/UPC/Projects/MDM/WISCENTD_bkp/MDM_TDB"),
+                    new File("/home/snadal/UPC/Projects/MDM/MetadataStorage/MDM_TDB"));
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
 
         return Response.ok("OK").build();
     }
