@@ -13,6 +13,7 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
+import org.apache.jena.system.Txn;
 
 import javax.inject.Inject;
 
@@ -51,11 +52,12 @@ public class MDMWrapper {
             //System.out.println(dataSource.toJSONString());
             populateWrapperContent(dataSource);
             try {
-                JSONObject res = wrapperS.createWrapper(wrapper.toJSONString());
+                JSONObject res = wrapperS.createWrapperBDI(wrapper.toJSONString());
                 //System.out.println(res.toJSONString());
                 wrappersIds.add(res.getAsString("wrapperID"));
                 //HttpUtils.sendPost(wrapper, postWrapperUrl);
             } catch (Exception e) {
+                System.out.println(e.getStackTrace());
                 e.printStackTrace();
             }
         }
@@ -97,23 +99,22 @@ public class MDMWrapper {
     }
 
     private void addWrappersInfoInGGMongoCollection() {
-        globalGraphR.updateByGlobalGraphID(mdmGgIri, GlobalGraphMongo.FIELD_wrappers.val(),wrappersIds);
+        globalGraphR.updateByField(GlobalGraphMongo.FIELD_NamedGraph.val(),mdmGgIri, GlobalGraphMongo.FIELD_wrappers.val(),wrappersIds);
 
     }
 
     public static void checkNamedGraph(String uri) {
         System.out.printf("Source URI: " + uri);
         Dataset ds = Utils.getTDBDataset();
-        ds.begin(ReadWrite.WRITE);
-        if (ds.containsNamedModel(uri)) {
-            System.out.println("True - Size: " + ds.getNamedModel(uri).size());
-            //ds.removeNamedModel(uri);
-        } else {
-            System.out.println("False");
-        }
-        ds.commit();
-        ds.end();
-        ds.close();
+        Txn.executeWrite(ds, ()->{
+            if (ds.containsNamedModel(uri)) {
+                System.out.println("True - Size: " + ds.getNamedModel(uri).size());
+                //ds.removeNamedModel(uri);
+            } else {
+                System.out.println("False");
+            }
+
+        });
 
     }
 }

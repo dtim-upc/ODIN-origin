@@ -124,20 +124,11 @@ public class MDMLavMapping {
      * Let's get the ids of the associated wrappers and store them in JsonArray named wrappersCoveringGlobalGraph
      */
     private void getWrapperInfoFromGg() {
-//        MongoClient client = Utils.getMongoDBClient();
 
-        globalGraphR.findByNamedGraph(mdmGlobalGraphIri);
-        GlobalGraphModel ggInfo = globalGraphR.findByNamedGraph("mdmGlobalGraphIri");
+        GlobalGraphModel ggInfo = globalGraphR.findByNamedGraph(mdmGlobalGraphIri);
         wrappersCoveringGlobalGraph = ggInfo.getWrappers();
         mdmGgId = ggInfo.getGlobalGraphID();
 
-
-//        MongoCursor<Document> cursor = MongoCollections.getGlobalGraphCollection(client).find(new Document("namedGraph", mdmGlobalGraphIri)).iterator();
-//
-//        JSONObject ggInfo = (JSONObject) JSONValue.parse(MongoCollections.getMongoObject(client, cursor));
-//        wrappersCoveringGlobalGraph = (JSONArray) ggInfo.get("wrappers");
-//        mdmGgId = ggInfo.getAsString("globalGraphID");
-//        client.close();
     }
 
     /**
@@ -224,16 +215,16 @@ public class MDMLavMapping {
         /*Create a list containing Schema IRIs of all the sources/wrappers involved in the creation of GG*/
         HashMap<String, String> sourceSchemasIRIs = new HashMap<>();
         wrappersMongoInformation.forEach(wrapper -> {
-            sourceSchemasIRIs.put(getDataSourceSchemaIRI((JSONObject) wrapper), getDataSourceSchemaIRI((JSONObject) wrapper));
+            sourceSchemasIRIs.put(getDataSourceSchemaIRI((WrapperModel)wrapper), getDataSourceSchemaIRI( (WrapperModel)wrapper));
         });
         ImmutableMap<String, String> immutableMap = ImmutableMap.copyOf(sourceSchemasIRIs);
         wrappersMongoInformation.forEach(wrapper -> {
-            drawCovering((JSONObject) wrapper, immutableMap);
+            drawCovering((WrapperModel) wrapper, immutableMap);
         });
     }
 
-    private void drawCovering(JSONObject wrapperInfo, ImmutableMap<String, String> sourceSchemasIRIs) {
-        LOGGER.info("[Create LAV Covering for Wrapper: " + wrapperInfo.getAsString("name") + " ]");
+    private void drawCovering(WrapperModel wrapperInfo, ImmutableMap<String, String> sourceSchemasIRIs) {
+        LOGGER.info("[Create LAV Covering for Wrapper: " + wrapperInfo.getName() + " ]");
         /*Using dataSourceID for the wrapper, get the Schema IRI of the source*/
         String dataSourceSchemaIri = getDataSourceSchemaIRI(wrapperInfo);
         HashMap<String, String> temp = new HashMap<>();
@@ -320,7 +311,7 @@ public class MDMLavMapping {
         });
         lavMappingSubGraph.put("selection", selectionArray);
         lavMappingSubGraph.put("graphicalSubGraph", graphicalGraphArray);
-        lavMappingSubGraph.put("LAVMappingID", wrapperInfo.getAsString("LAVMappingID"));
+        lavMappingSubGraph.put("LAVMappingID", wrapperInfo.getLAVMappingID());
 
         //System.out.println(lavMappingSubGraph);
         LAVService.createLAVMappingSubgraph(lavMappingSubGraph.toJSONString());
@@ -335,10 +326,10 @@ public class MDMLavMapping {
         return temp;
     }
 
-    private String getDataSourceSchemaIRI(JSONObject obj) {
+    private String getDataSourceSchemaIRI(WrapperModel obj) {
         String iri = "";
 //        MongoClient client = Utils.getMongoDBClient();
-        DataSourceModel dataSourceInfo = dataSourceR.findByDataSourceID(obj.getAsString("dataSourceID"));
+        DataSourceModel dataSourceInfo = dataSourceR.findByDataSourceID(obj.getDataSourceID());
         iri = dataSourceInfo.getSchema_iri();
         return iri;
     }

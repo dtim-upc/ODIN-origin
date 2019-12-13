@@ -84,8 +84,14 @@ public class GlobalGraphRepository {
         globalGraphCollection.updateOne(eq(GlobalGraphMongo.FIELD_GlobalGraphID.val(),globalGraphID), Updates.set(field,value));
     }
 
+    public void updateByField(String fieldFilter, String globalGraphID, String field, Object value){
+        globalGraphCollection.updateOne(eq(fieldFilter,globalGraphID), Updates.set(field,value));
+    }
+
+
     public void deleteByGlobalGraphID(String globalGraphID){
         globalGraphCollection.deleteOne(eq(GlobalGraphMongo.FIELD_GlobalGraphID.val(), globalGraphID));
     }
+
 
 }
