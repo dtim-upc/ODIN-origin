@@ -29,9 +29,18 @@ public class JenaConnection {
 
     public void init() {
         getTDBDataset();
+
+        Runtime.getRuntime().addShutdownHook(
+                new Thread("app-shutdown-hook") {
+                    @Override
+                    public void run() {
+                        close();
+                        System.out.println("bye");
+                    }});
     }
 
     public void close() {
+        dataset.end();
         dataset.close();
         dataset = null;
     }

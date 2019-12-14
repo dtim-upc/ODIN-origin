@@ -73,7 +73,7 @@ public class DataSourceRepository {
 
     public void addWrapper(String dataSourceID,String wrapperID ){
         dataSourceCollection.updateOne(eq(DataSourceMongo.FIELD_DataSourceID.val(),dataSourceID),
-                Updates.addToSet(DataSourceMongo.FIELD_Wrappers.val() ,wrapperID) );
+                Updates.push(DataSourceMongo.FIELD_Wrappers.val() ,wrapperID) );
     }
 
     public void deleteByDataSourceID(String dataSourceID){

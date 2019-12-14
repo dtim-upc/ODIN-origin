@@ -1,5 +1,6 @@
 package eu.supersede.mdm.storage.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.result.DeleteResult;
 import eu.supersede.mdm.storage.db.jena.GraphOperations;
 import eu.supersede.mdm.storage.db.mongo.models.*;
@@ -14,6 +15,9 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 
 import javax.inject.Inject;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LAVMappingService {
 
@@ -92,8 +96,16 @@ public class LAVMappingService {
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
 
         LAVMappingModel objMapping = LAVMappingR.findByLAVMappingID(objBody.getAsString("LAVMappingID"));
-        LAVMappingR.updateByLAVMappingID(objMapping.getId().toString(),
-                LAVMappingMongo.FIELD_graphicalSubGraph.val(),objBody.getAsString("graphicalSubGraph"));
+
+        List<String> list = new ArrayList<>();
+        try {
+            list = new ObjectMapper().readValue(objBody.getAsString("graphicalSubGraph"), List.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        LAVMappingR.updateGraphicalSubgraph(objMapping.getLAVMappingID().toString(),
+               list);
 
         WrapperModel wrapper = wrapperR.findByWrapperID(objMapping.getWrapperID());
         GlobalGraphModel globalGraph = globalGR.findByGlobalGraphID(objMapping.getGlobalGraphID());

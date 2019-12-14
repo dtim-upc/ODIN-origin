@@ -58,6 +58,7 @@ public class ApacheMain {
         contexts.addHandler(context);
 
         server.setHandler(contexts);
+
         try {
 
             server.start();

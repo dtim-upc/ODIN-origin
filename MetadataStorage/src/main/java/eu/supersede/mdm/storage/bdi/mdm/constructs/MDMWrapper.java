@@ -52,12 +52,9 @@ public class MDMWrapper {
             //System.out.println(dataSource.toJSONString());
             populateWrapperContent(dataSource);
             try {
-                JSONObject res = wrapperS.createWrapperBDI(wrapper.toJSONString());
-                //System.out.println(res.toJSONString());
+                JSONObject res = wrapperS.createWrapper(wrapper.toJSONString());
                 wrappersIds.add(res.getAsString("wrapperID"));
-                //HttpUtils.sendPost(wrapper, postWrapperUrl);
             } catch (Exception e) {
-                System.out.println(e.getStackTrace());
                 e.printStackTrace();
             }
         }

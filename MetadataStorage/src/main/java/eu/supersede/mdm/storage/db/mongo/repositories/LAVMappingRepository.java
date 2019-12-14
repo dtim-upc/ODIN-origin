@@ -82,6 +82,10 @@ public class LAVMappingRepository {
         LAVCollection.updateOne(eq(LAVMappingMongo.FIELD_LAVMappingID.val(),LAVmappingID), Updates.set(field,value));
     }
 
+    public void updateGraphicalSubgraph(String LAVmappingID, List<String> value){
+        LAVCollection.updateOne(eq(LAVMappingMongo.FIELD_LAVMappingID.val(),LAVmappingID), Updates.set(LAVMappingMongo.FIELD_graphicalSubGraph.val(),value));
+    }
+
     public void update(String queryField,String queryValue, String field, String value){
         LAVCollection.updateOne(eq(queryField,queryValue), Updates.set(field,value));
     }

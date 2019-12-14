@@ -53,6 +53,7 @@ public class WrapperService {
         //Update the data source with the new wrapper
         dataSourceR.addWrapper(objBody.getAsString("dataSourceID"),objBody.getAsString("wrapperID"));
 
+        //RDF - we use as named graph THE SAME as the data source
         String dsIRI =  dataSourceR.findByDataSourceID(objBody.getAsString("dataSourceID")).getIri();
         String wIRI = objBody.getAsString("iri");
 
@@ -69,29 +70,29 @@ public class WrapperService {
         return objBody;
     }
 
-    public JSONObject createWrapperBDI(String body) {
-        JSONObject objBody = (JSONObject) JSONValue.parse(body);
-
-        objBody = wrapperR.create(objBody);
-
-        //Update the data source with the new wrapper
-        dataSourceR.addWrapper(objBody.getAsString("dataSourceID"),objBody.getAsString("wrapperID"));
-
-        String dsIRI =  dataSourceR.findByDataSourceID(objBody.getAsString("dataSourceID")).getIri();
-        String wIRI = objBody.getAsString("iri");
-
-        graphO.addTriple(dsIRI, wIRI, Namespaces.rdf.val() + "type", SourceGraph.WRAPPER.val());
-        graphO.addTriple(dsIRI, dsIRI, SourceGraph.HAS_WRAPPER.val(), wIRI);
-        ((JSONArray) objBody.get("attributes")).forEach(attribute -> {
-            String attName = ((JSONObject) attribute).getAsString("name");
-            String attIRI = dsIRI + "/" + attName/*.trim().replace(" ", "")*/;
-            graphO.addTriple(dsIRI, attIRI, Namespaces.rdf.val() + "type", SourceGraph.ATTRIBUTE.val());
-            graphO.addTriple(dsIRI, wIRI, SourceGraph.HAS_ATTRIBUTE.val(), attIRI);
-
-        });
-
-        return objBody;
-    }
+//    public JSONObject createWrapperBDI(String body) {
+//        JSONObject objBody = (JSONObject) JSONValue.parse(body);
+//
+//        objBody = wrapperR.create(objBody);
+//
+//        //Update the data source with the new wrapper
+//        dataSourceR.addWrapper(objBody.getAsString("dataSourceID"),objBody.getAsString("wrapperID"));
+//
+//        String dsIRI =  dataSourceR.findByDataSourceID(objBody.getAsString("dataSourceID")).getIri();
+//        String wIRI = objBody.getAsString("iri");
+//
+//        graphO.addTriple(dsIRI, wIRI, Namespaces.rdf.val() + "type", SourceGraph.WRAPPER.val());
+//        graphO.addTriple(dsIRI, dsIRI, SourceGraph.HAS_WRAPPER.val(), wIRI);
+//        ((JSONArray) objBody.get("attributes")).forEach(attribute -> {
+//            String attName = ((JSONObject) attribute).getAsString("name");
+//            String attIRI = dsIRI + "/" + attName/*.trim().replace(" ", "")*/;
+//            graphO.addTriple(dsIRI, attIRI, Namespaces.rdf.val() + "type", SourceGraph.ATTRIBUTE.val());
+//            graphO.addTriple(dsIRI, wIRI, SourceGraph.HAS_ATTRIBUTE.val(), attIRI);
+//
+//        });
+//
+//        return objBody;
+//    }
 
 
     // delete

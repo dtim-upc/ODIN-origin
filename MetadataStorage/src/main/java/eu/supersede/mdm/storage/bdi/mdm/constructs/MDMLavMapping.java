@@ -137,7 +137,6 @@ public class MDMLavMapping {
     private void initLavMapping() {
         //Let's iterate over all the wrappers
         wrappersCoveringGlobalGraph.forEach(wrapperId -> {
-//            MongoClient client = Utils.getMongoDBClient();
 
             WrapperModel wrapperInfo = wrapperR.findByWrapperID(wrapperId);
 
@@ -232,7 +231,8 @@ public class MDMLavMapping {
         temp.remove(dataSourceSchemaIri);
 
         List<Triple> triples = new ArrayList<>();
-        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p ?o . }}").forEachRemaining(res -> {
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p ?o . }}")
+                .forEachRemaining(res -> {
             //System.out.println(res.get("s").toString() + "\t" + res.get("p").toString() + "\t" + res.get("o").toString());
             triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(), new PropertyImpl(res.get("p").asResource().toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
         });
@@ -328,7 +328,6 @@ public class MDMLavMapping {
 
     private String getDataSourceSchemaIRI(WrapperModel obj) {
         String iri = "";
-//        MongoClient client = Utils.getMongoDBClient();
         DataSourceModel dataSourceInfo = dataSourceR.findByDataSourceID(obj.getDataSourceID());
         iri = dataSourceInfo.getSchema_iri();
         return iri;

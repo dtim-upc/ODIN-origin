@@ -111,7 +111,7 @@ public class OMQResource {
         out.put("ra", graphO.nn(UCQ.stream().map(cq -> cq.toString()).collect(Collectors.joining("\nU\n"))));
 
         T.abort();
-        T.close();
+//        T.close();
 
 
         HashMap<String,String> wrapperIriToID = Maps.newHashMap(); //used to map wrapper IRIs to IDs

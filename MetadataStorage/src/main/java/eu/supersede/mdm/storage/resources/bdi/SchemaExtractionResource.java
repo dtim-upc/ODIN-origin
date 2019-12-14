@@ -249,21 +249,10 @@ public class SchemaExtractionResource {
 
     private void addDataSourceInfoAsMongoCollection(JSONObject objBody) {
         dataSourceR.create(objBody);
-//        MongoClient client = Utils.getMongoDBClient();
-//        MongoCollections.getDataSourcesCollection(client).insertOne(Document.parse(objBody.toJSONString()));
-//        client.close();
     }
 
     private void addExtractedSchemaIntoTDBStore(String iri, String outputFilePath) {
-//        Dataset dataset = Utils.getTDBDataset();
-//        dataset.begin(ReadWrite.WRITE);
-//        Model model = dataset.getNamedModel(iri);
-//        model.read(outputFilePath);
-//        model.commit();
-//        model.close();
-//        dataset.commit();
-//        dataset.end();
-//        dataset.close();
+
         graphO.createGraph(iri,outputFilePath);
     }
 }
