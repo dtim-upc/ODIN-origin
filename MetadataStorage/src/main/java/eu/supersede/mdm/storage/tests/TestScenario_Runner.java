@@ -13,12 +13,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Given an scenario name (stored in MDM/datasets/scenarios), it will parse all the files
+ * Given an scenario name (stored in ODIN/datasets/scenarios), it will parse all the files
  * (prefixes, metamodel, global graph, queries, ...) to rewrite the different queries.
  */
 public class TestScenario_Runner {
 
-    private static String basePath = "/home/snadal/UPC/Projects/MDM_v2/MDM/";
+    private static String basePath = "/home/snadal/UPC/Projects/ODIN/";
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) throw new Exception("Scenario name not provided");
