@@ -18,11 +18,7 @@ import java.util.Set;
  */
 public class TestScenario_Runner {
 
-<<<<<<< HEAD:MetadataStorage/src/main/java/eu/supersede/mdm/storage/tests/TestScenario_Runner.java
     private static String basePath = "/home/snadal/UPC/Projects/ODIN/";
-=======
-    private static String basePath = "/Users/javierflores/Documents/UPC/essi/projects/temp/MDM/";
->>>>>>> 7a2f8ba7402474ad5fa223d3161901d88d8d0db7:MetadataStorage/src/main/java/org/dtim/odin/storage/tests/TestScenario_Runner.java
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) throw new Exception("Scenario name not provided");
@@ -30,7 +26,7 @@ public class TestScenario_Runner {
         String baseURI = "http://www.essi.upc.edu/~snadal/"+scenario;
         String scenarioPath = basePath + "datasets/scenarios/"+scenario+"/";
 
-        ApacheMain.configPath = basePath + "MetadataStorage/config.javier.properties";
+        ApacheMain.configPath = basePath + "MetadataStorage/config.sergi.properties";
         TestUtils.deleteTDB();
         Map<String, String> prefixes = TestUtils.populatePrefixes(scenarioPath + "prefixes.txt");
         TestUtils.populateTriples(baseURI, scenarioPath + "metamodel.txt", prefixes);

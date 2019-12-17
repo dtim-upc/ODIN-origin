@@ -5,6 +5,7 @@ import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.system.Txn;
 import org.dtim.odin.storage.model.Namespaces;
 import org.dtim.odin.storage.model.metamodel.GlobalGraph;
 
@@ -20,11 +21,17 @@ public class RDFUtil {
         //System.out.println("Adding triple: [namedGraph] "+namedGraph+", [s] "+s+", [p] "+p+", [o] "+o);
         Dataset ds = Utils.getTDBDataset();
         ds.begin(ReadWrite.WRITE);
-        Model graph = ds.getNamedModel(namedGraph);
-        graph.add(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
-        graph.commit();
-        graph.close();
-        ds.commit();
+        Txn.executeWrite(ds,()->{
+            Model graph = ds.getNamedModel(namedGraph);
+            graph.add(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
+            graph.commit();
+            //graph.close();
+
+        });
+        //Model graph = ds.getNamedModel(namedGraph);
+        //graph.add(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
+
+        //ds.commit();
         ds.end();
         ds.close();
     }
@@ -34,12 +41,16 @@ public class RDFUtil {
         //System.out.println("Adding triple: [namedGraph] "+namedGraph+", [s] "+s+", [p] "+p+", [o] "+o);
         Dataset ds = Utils.getTDBDataset();
         ds.begin(ReadWrite.WRITE);
-        Model graph = ds.getNamedModel(namedGraph);
-        for (Tuple3<String, String, String> t : triples) {
-            graph.add(new ResourceImpl(t._1), new PropertyImpl(t._2), new ResourceImpl(t._3));
-        }
-        graph.commit();
-        graph.close();
+        Txn.executeWrite(ds,()->{
+            Model graph = ds.getNamedModel(namedGraph);
+            for (Tuple3<String, String, String> t : triples) {
+                graph.add(new ResourceImpl(t._1), new PropertyImpl(t._2), new ResourceImpl(t._3));
+            }
+            graph.commit();
+            graph.close();
+        });
+
+
         ds.commit();
         ds.end();
         ds.close();
