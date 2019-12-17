@@ -22,6 +22,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -112,7 +113,7 @@ public class MDMGlobalGraph {
 
         //Sergi added
         //This is to create artificial concepts grouping all equivalent features
-        //processEquivalentProperties(mdmGlobalGraph);
+//        processEquivalentProperties(mdmGgIri);
 
     }
 
@@ -275,29 +276,31 @@ public class MDMGlobalGraph {
         });
     }
 
-    private void processEquivalentProperties(Model mdmGlobalGraph) {
+    private void processEquivalentProperties(String mdmGgIri) {
         String getEquivProperties = "SELECT * WHERE { GRAPH <" + bdiGgIri + "> { ?s owl:equivalentProperty ?o }}";
 
         //Connect in a graph equivalent properties
         //each connected component will represent a concept
-        Graph<String, RelationshipEdge> G = new SimpleDirectedGraph<>(RelationshipEdge.class);
-
-        graphO.runAQuery(graphO.sparqlQueryPrefixes + getEquivProperties).forEachRemaining(triple -> {
-            G.addVertex(triple.getResource("s").getURI());
-            G.addVertex(triple.getResource("o").getURI());
-            G.addEdge(triple.getResource("s").getURI(),triple.getResource("o").getURI(),
-                    new RelationshipEdge(UUID.randomUUID().toString()));
-//            mdmGlobalGraph.add(triple.getResource("s"), new PropertyImpl(triple.get("p").toString()), triple.getResource("o"));
-        });
-        ConnectivityInspector<String, RelationshipEdge> c = new ConnectivityInspector<>(G);
-        c.connectedSets().forEach(s -> {
+//        Graph<String, RelationshipEdge> G = new SimpleDirectedGraph<>(RelationshipEdge.class);
+//
+//        graphO.runAQuery(graphO.sparqlQueryPrefixes + getEquivProperties).forEachRemaining(triple -> {
+//            System.out.println(triple.getResource("s").getURI() + " equivalent to "+triple.getResource("o").getURI());
+//            G.addVertex(triple.getResource("s").getURI());
+//            G.addVertex(triple.getResource("o").getURI());
+//            G.addEdge(triple.getResource("s").getURI(),triple.getResource("o").getURI(),
+//                    new RelationshipEdge(UUID.randomUUID().toString()));
+////            mdmGlobalGraph.add(triple.getResource("s"), new PropertyImpl(triple.get("p").toString()), triple.getResource("o"));
+//        });
+//        ConnectivityInspector<String, RelationshipEdge> c = new ConnectivityInspector<>(G);
+//        System.out.println("aaa");
+        /*c.connectedSets().forEach(s -> {
             String concept = UUID.randomUUID().toString();
             mdmGlobalGraph.add(new ResourceImpl(concept),new PropertyImpl(RDF.TYPE),  new ResourceImpl(GlobalGraph.CONCEPT.val()));
             s.forEach(f -> {
                 mdmGlobalGraph.add(new ResourceImpl(concept),new PropertyImpl(GlobalGraph.HAS_FEATURE.val()),
                         new ResourceImpl(f));
             });
-        });
+        });*/
     }
 
     private String getClassNameFromIRI(String IRI) {
