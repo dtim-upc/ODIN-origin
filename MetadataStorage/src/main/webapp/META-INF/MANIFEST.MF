@@ -1,1 +1,1 @@
-Main-Class: eu.supersede.mdm.storage.ApacheMain
+Main-Class: org.dtim.odin.storage.ApacheMain

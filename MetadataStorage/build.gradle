@@ -34,10 +34,10 @@ shadowJar {
     classifier = null
     version = null
     manifest {
-        //attributes 'Main-Class': 'eu.supersede.mdm.storage.ApacheMain'
+        //attributes 'Main-Class': 'org.dtim.odin.storage.ApacheMain'
 
         //For experiments
-        attributes 'Main-Class': 'eu.supersede.mdm.storage.experiments.ExperimentsRunner'
+        attributes 'Main-Class': 'org.dtim.odin.storage.experiments.ExperimentsRunner'
     }
     append 'META-INF/services/org.apache.jena.system.JenaSubsystemLifecycle'
 }
@@ -81,11 +81,15 @@ dependencies {
 
     //compile 'com.google.guava:guava:25.1-jre'
     compile 'com.google.guava:guava:15.0'
-    compile 'org.mongodb:mongo-java-driver:3.4.0-rc1'
+
+    // https://mvnrepository.com/artifact/org.mongodb/mongodb-driver
+    compile group: 'org.mongodb', name: 'mongodb-driver', version: '3.11.2'
+    
     compile 'net.minidev:json-smart:2.2.1'
-    compile('org.apache.jena:apache-jena-libs:3.1.1') {
+    compile('org.apache.jena:apache-jena-libs:3.13.1') {
         exclude group: 'com.github.jsonld-java'
     }
+    compile group: 'org.apache.jena', name: 'jena-querybuilder', version: '3.13.1'
     compile 'com.google.code.gson:gson:2.8.0'
     /*compile 'org.scala-lang:scala-library:2.12.0'*/
     compile 'org.jgrapht:jgrapht-core:1.2.0'
