@@ -1,6 +1,6 @@
 package org.dtim.odin.storage.service.impl;
 
-//import eu.supersede.mdm.storage.util.MongoCollections;
+//import org.dtim.odin.storage.util.MongoCollections;
 
 
 //@RunWith(PowerMockRunner.class)

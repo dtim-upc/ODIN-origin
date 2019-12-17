@@ -36,8 +36,8 @@ public class ApacheMain {
         setLoggerConfig();
 
         ResourceConfig config = new ResourceConfig();
-        config.packages("eu.supersede.mdm.storage.resources");
-        config.packages("eu.supersede.mdm.storage.errorhandling");
+        config.packages("org.dtim.odin.storage.resources");
+        config.packages("org.dtim.odin.storage.errorhandling");
         config.register(ApiListingResource.class);
         config.register(SwaggerSerializers.class);
 //        config.register(new MyApplicationBinder());
@@ -79,7 +79,7 @@ public class ApacheMain {
         beanConfig.setSchemes(new String[]{"http"});
         beanConfig.setHost("localhost:8082");
         beanConfig.setBasePath("/");
-        beanConfig.setResourcePackage("eu.supersede.mdm.storage.resources");
+        beanConfig.setResourcePackage("org.dtim.odin.storage.resources");
         beanConfig.setPrettyPrint(true);
         //beanConfig.setScan(true);
     }

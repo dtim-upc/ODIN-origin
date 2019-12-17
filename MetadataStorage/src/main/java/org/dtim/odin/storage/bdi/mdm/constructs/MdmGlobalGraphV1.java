@@ -1,10 +1,10 @@
-//package eu.supersede.mdm.storage.bdi.mdm.constructs;
+//package org.dtim.odin.storage.bdi.mdm.constructs;
 //
 //import com.mongodb.MongoClient;
 //import Namespaces;
 //import GlobalGraph;
 //import OWLtoWebVOWL;
-//import eu.supersede.mdm.storage.util.MongoCollections;
+//import org.dtim.odin.storage.util.MongoCollections;
 //import RDFUtil;
 //import Utils;
 //import net.minidev.json.JSONObject;

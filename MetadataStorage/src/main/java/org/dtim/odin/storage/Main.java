@@ -13,7 +13,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class Main extends Application {
     public static void main(String[] args) {
         ResourceConfig config = new ResourceConfig();
-        config.packages("eu.supersede.mdm.storage.resources");
+        config.packages("org.dtim.odin.storage.resources");
         ServletHolder servlet = new ServletHolder(new ServletContainer(config));
 
 
@@ -36,7 +36,7 @@ public class Main extends ResourceConfig {
 
     public Main() {
         System.out.println("MetadataStorage started");
-        packages("eu.supersede.mdm.storage.resources");
+        packages("org.dtim.odin.storage.resources");
     }
 
 }
@@ -49,7 +49,7 @@ public class Main {
     public static HttpServer startServer() {
         // create a resource config that scans for JAX-RS resources and providers
         // in quarry.coal package
-        final ResourceConfig rc = new ResourceConfig().packages("eu.supersede.mdm.storage.resources");
+        final ResourceConfig rc = new ResourceConfig().packages("org.dtim.odin.storage.resources");
 
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
