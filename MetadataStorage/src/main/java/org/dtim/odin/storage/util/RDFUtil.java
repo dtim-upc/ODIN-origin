@@ -20,57 +20,39 @@ public class RDFUtil {
     public static void addTriple(String namedGraph, String s, String p, String o) {
         //System.out.println("Adding triple: [namedGraph] "+namedGraph+", [s] "+s+", [p] "+p+", [o] "+o);
         Dataset ds = Utils.getTDBDataset();
-        ds.begin(ReadWrite.WRITE);
         Txn.executeWrite(ds,()->{
             Model graph = ds.getNamedModel(namedGraph);
             graph.add(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
-            //graph.commit();
-            //graph.close();
-            ds.commit();
         });
-        //Model graph = ds.getNamedModel(namedGraph);
-        //graph.add(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
 
-        //ds.commit();
-        //ds.end();
-        //ds.close();
     }
 
     //Method only used in experiments package.
     public static void addBatchOfTriples(String namedGraph, List<Tuple3<String, String, String>> triples) {
         //System.out.println("Adding triple: [namedGraph] "+namedGraph+", [s] "+s+", [p] "+p+", [o] "+o);
         Dataset ds = Utils.getTDBDataset();
-        ds.begin(ReadWrite.WRITE);
+
         Txn.executeWrite(ds,()->{
             Model graph = ds.getNamedModel(namedGraph);
             for (Tuple3<String, String, String> t : triples) {
                 graph.add(new ResourceImpl(t._1), new PropertyImpl(t._2), new ResourceImpl(t._3));
             }
-            ds.commit();
-            //graph.close();
+
         });
 
 
-        //ds.commit();
-        //ds.end();
-        //ds.close();
     }
 
     //used in QueryRewritting_edgebased and queryRewritting_recursive
     public static ResultSet runAQuery(String sparqlQuery, String namedGraph) {
         Dataset ds = Utils.getTDBDataset();
-        ds.begin(ReadWrite.READ);
         try (QueryExecution qExec = QueryExecutionFactory.create(QueryFactory.create(sparqlQuery), ds)) {
             ResultSetRewindable results = ResultSetFactory.copyResults(qExec.execSelect());
             qExec.close();
-            ds.end();
-            ds.close();
             return results;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        ds.end();
-        ds.close();
         return null;
     }
 
@@ -95,6 +77,7 @@ public class RDFUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
