@@ -30,14 +30,17 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 shadowJar {
     zip64 true
-    baseName = 'MetadataStorage-0.0.1-SNAPSHOT'
+    baseName = 'ODIN-1.0'
     classifier = null
     version = null
     manifest {
         //attributes 'Main-Class': 'org.dtim.odin.storage.ApacheMain'
 
         //For experiments
-        attributes 'Main-Class': 'org.dtim.odin.storage.experiments.ExperimentsRunner'
+        //attributes 'Main-Class': 'org.dtim.odin.storage.experiments.ExperimentsRunner'
+
+        //For experiments w.r.t. competitors
+        attributes 'Main-Class': 'org.dtim.odin.storage.experiments.ExperimentsRunnerCompetitors'
     }
     append 'META-INF/services/org.apache.jena.system.JenaSubsystemLifecycle'
 }
