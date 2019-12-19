@@ -82,11 +82,17 @@ public class ExperimentsRunnerCompetitors {
         }
 
         long a = System.currentTimeMillis();
-        Set<String> rewritings = DatalogExperimentsRunner.runCoreCover(DatalogConverter.minimizeDatalog(datalogQueries));
+        Set<String> corecoverRewritings = DatalogExperimentsRunner.runCoreCover(DatalogConverter.minimizeDatalog(datalogQueries));
         long b = System.currentTimeMillis();
         //edges in query; number of covering wrappers;
-        System.out.println(UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
-                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+rewritings.size()+";"+(b-a));
+        System.out.println("CoreCover;"+UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
+                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+corecoverRewritings.size()+";"+(b-a));
+        a = System.currentTimeMillis();
+        Set<String> miniconRewritings = DatalogExperimentsRunner.runMiniCon(DatalogConverter.minimizeDatalog(datalogQueries));
+        b = System.currentTimeMillis();
+        //edges in query; number of covering wrappers;
+        System.out.println("MiniCon;"+UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
+                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+miniconRewritings.size()+";"+(b-a));
 
 
     }
