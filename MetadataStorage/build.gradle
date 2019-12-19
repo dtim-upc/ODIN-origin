@@ -29,6 +29,8 @@ repositories {
 apply plugin: 'com.github.johnrengelman.shadow'
 
 shadowJar {
+    mergeServiceFiles()
+
     zip64 true
     baseName = 'ODIN-1.0'
     classifier = null
