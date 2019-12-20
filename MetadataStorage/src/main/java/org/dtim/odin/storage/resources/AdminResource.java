@@ -4,6 +4,7 @@ import com.mongodb.MongoClient;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.dtim.odin.storage.db.jena.JenaConnection;
 import org.dtim.odin.storage.db.mongo.utils.UtilsMongo;
 import org.dtim.odin.storage.util.ConfigManager;
 import org.dtim.odin.storage.util.Utils;
@@ -36,6 +37,7 @@ public class AdminResource {
 
         UtilsMongo.dropMongoDB();
         try {
+            JenaConnection.getInstance().close();
             FileUtils.deleteDirectory(new File(ConfigManager.getProperty("metadata_db_file")));
         } catch (IOException e) {
             e.printStackTrace();
