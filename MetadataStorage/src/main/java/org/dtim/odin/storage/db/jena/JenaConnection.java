@@ -40,9 +40,12 @@ public class JenaConnection {
     }
 
     public void close() {
-        dataset.end();
-        dataset.close();
-        dataset = null;
+        if(dataset != null){
+            dataset.end();
+            dataset.close();
+            dataset = null;
+        }
+
     }
 
     public static JenaConnection getInstance() {
