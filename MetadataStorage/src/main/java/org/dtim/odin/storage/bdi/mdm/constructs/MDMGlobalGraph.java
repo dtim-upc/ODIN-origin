@@ -21,6 +21,7 @@ import org.semarglproject.vocab.RDF;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -268,6 +269,13 @@ public class MDMGlobalGraph {
     }
 
     private void processEquivalentProperties(String mdmGgIri) {
+
+        String getClasses = "SELECT * WHERE { GRAPH <" + bdiGgIri + "> { ?s ?p ?o. ?s rdf:type rdfs:Class. FILTER NOT EXISTS {?o rdf:type ?x.} }}";
+        List<String> classList = new ArrayList<>();
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + getClasses).forEachRemaining(triple -> {
+            classList.add(triple.get("s").toString());
+        });
+
         String getEquivProperties = "SELECT * WHERE { GRAPH <" + bdiGgIri + "> { ?s owl:equivalentProperty ?o }}";
 
         //Connect in a graph equivalent properties
@@ -290,13 +298,15 @@ public class MDMGlobalGraph {
             String relation = Namespaces.G.val()+  UUID.randomUUID().toString();
             s.forEach(f -> {
 
-                ResultSet rs = graphO.runAQuery("SELECT ?s WHERE  { GRAPH <" + mdmGgIri + "> { ?s <" + GlobalGraph.HAS_FEATURE.val() + ">  <" + f + ">  }}");
                 boolean found = false;
-                while (rs.hasNext()){
-                    graphO.addTriple(mdmGgIri,rs.next().get("s").asNode().getURI(),relation,concept);
-                    graphO.deleteTriplesWithObject(mdmGgIri,f);
-                    graphO.deleteTriplesWithSubject(mdmGgIri,f);
-                    found = true;
+                for (String item:classList) {
+                    if(f.contains(item)){
+                        graphO.addTriple(mdmGgIri,item,relation,concept);
+                        graphO.deleteTriplesWithObject(mdmGgIri,f);
+                        graphO.deleteTriplesWithSubject(mdmGgIri,f);
+                        found = true;
+                        break;
+                    }
                 }
 
                 if(!found && f.contains(Namespaces.G.val())){
