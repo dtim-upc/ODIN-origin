@@ -47,7 +47,7 @@ public class ExperimentsRunnerCompetitors {
         }
 
         ApacheMain.configPath = basePath + "MetadataStorage/config.sergi.properties";
-        TestUtils.deleteTDB();
+        //TestUtils.deleteTDB();
         Map<String, String> prefixes = TestUtils.populatePrefixes(basePath + "datasets/scenarios/SIGMOD_CQ/prefixes.txt");
         TestUtils.populateTriples("http://www.essi.upc.edu/~snadal/SIGMOD_ontology", basePath + "datasets/scenarios/SIGMOD_CQ/metamodel.txt", prefixes);
 
@@ -82,12 +82,19 @@ public class ExperimentsRunnerCompetitors {
         }
 
         long a = System.currentTimeMillis();
-        Set<String> rewritings = DatalogExperimentsRunner.runMiniCon(DatalogConverter.minimizeDatalog(datalogQueries));
+        Set<String> corecoverRewritings = DatalogExperimentsRunner.runCoreCover(DatalogConverter.minimizeDatalog(datalogQueries));
         long b = System.currentTimeMillis();
         //edges in query; number of covering wrappers;
-        System.out.println(UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
-                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+rewritings.size()+";"+(b-a));
-
+        System.out.println("CoreCover;"+UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
+                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+corecoverRewritings.size()+";"+(b-a));
+        /*
+        a = System.currentTimeMillis();
+        Set<String> miniconRewritings = DatalogExperimentsRunner.runMiniCon(DatalogConverter.minimizeDatalog(datalogQueries));
+        b = System.currentTimeMillis();
+        //edges in query; number of covering wrappers;
+        System.out.println("MiniCon;"+UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
+                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+miniconRewritings.size()+";"+(b-a));
+        */
 
     }
 }

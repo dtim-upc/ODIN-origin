@@ -6,6 +6,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.system.Txn;
+import org.dtim.odin.storage.db.jena.JenaConnection;
 import org.dtim.odin.storage.model.Namespaces;
 import org.dtim.odin.storage.model.metamodel.GlobalGraph;
 
@@ -19,7 +20,8 @@ public class RDFUtil {
     //Method used only in tests package
     public static void addTriple(String namedGraph, String s, String p, String o) {
         //System.out.println("Adding triple: [namedGraph] "+namedGraph+", [s] "+s+", [p] "+p+", [o] "+o);
-        Dataset ds = Utils.getTDBDataset();
+        Dataset ds = JenaConnection.getInstance().getTDBDataset();
+        Utils.getTDBDataset();
         Txn.executeWrite(ds,()->{
             Model graph = ds.getNamedModel(namedGraph);
             graph.add(new ResourceImpl(s), new PropertyImpl(p), new ResourceImpl(o));
@@ -30,7 +32,7 @@ public class RDFUtil {
     //Method only used in experiments package.
     public static void addBatchOfTriples(String namedGraph, List<Tuple3<String, String, String>> triples) {
         //System.out.println("Adding triple: [namedGraph] "+namedGraph+", [s] "+s+", [p] "+p+", [o] "+o);
-        Dataset ds = Utils.getTDBDataset();
+        Dataset ds = JenaConnection.getInstance().getTDBDataset();
 
         Txn.executeWrite(ds,()->{
             Model graph = ds.getNamedModel(namedGraph);
@@ -45,7 +47,7 @@ public class RDFUtil {
 
     //used in QueryRewritting_edgebased and queryRewritting_recursive
     public static ResultSet runAQuery(String sparqlQuery, String namedGraph) {
-        Dataset ds = Utils.getTDBDataset();
+        Dataset ds = JenaConnection.getInstance().getTDBDataset();
         try (QueryExecution qExec = QueryExecutionFactory.create(QueryFactory.create(sparqlQuery), ds)) {
             ResultSetRewindable results = ResultSetFactory.copyResults(qExec.execSelect());
             qExec.close();

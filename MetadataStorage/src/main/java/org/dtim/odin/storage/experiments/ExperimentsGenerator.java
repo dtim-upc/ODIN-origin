@@ -2,6 +2,7 @@ package org.dtim.odin.storage.experiments;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.dtim.odin.storage.db.jena.GraphOperations;
 import org.dtim.odin.storage.model.Namespaces;
 import org.dtim.odin.storage.model.graph.CQVertex;
 import org.dtim.odin.storage.model.graph.IntegrationEdge;
@@ -152,7 +153,8 @@ public class ExperimentsGenerator {
                 //System.out.println("    "+wrapperName+" - "+attributeName + " -- sameAs --> "+v);
             }
         });
-        RDFUtil.addBatchOfTriples(namedGraph,triples);
+        GraphOperations gOp = new GraphOperations();
+        gOp.addBatchOfTriples(namedGraph,triples);
 
         //LAV mapping
         W.registerRDFDataset(RDFUtil.convertToURI(wrapperName));

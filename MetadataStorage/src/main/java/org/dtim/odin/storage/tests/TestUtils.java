@@ -3,6 +3,7 @@ package org.dtim.odin.storage.tests;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
+import org.dtim.odin.storage.db.jena.GraphOperations;
 import org.dtim.odin.storage.util.RDFUtil;
 import org.dtim.odin.storage.util.Tuple2;
 
@@ -17,7 +18,7 @@ public class TestUtils {
 
     public static void deleteTDB() {
         try {
-            FileUtils.deleteDirectory(new File("/home/snadal/UPC/Projects/MDM_v2/MDM/MetadataStorage/MDM_TDB"));
+            FileUtils.deleteDirectory(new File("/home/snadal/UPC/Projects/ODIN/MetadataStorage/ODIN_TDB"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -36,7 +37,8 @@ public class TestUtils {
             String p = prefixes.get(spo[1].split(":")[0])+spo[1].split(":")[1];
             String o = prefixes.get(spo[2].split(":")[0])+spo[2].split(":")[1];
 
-            RDFUtil.addTriple(namedGraph,s,p,o);
+            GraphOperations gOp = new GraphOperations();
+            gOp.addTriple(namedGraph,s,p,o);
         });
     }
 
@@ -50,7 +52,9 @@ public class TestUtils {
                 String s = prefixes.get(spo[0].split(":")[0])+spo[0].split(":")[1];
                 String p = prefixes.get(spo[1].split(":")[0])+spo[1].split(":")[1];
                 String o = prefixes.get(spo[2].split(":")[0])+spo[2].split(":")[1];
-                RDFUtil.addTriple(prefixes.get(wrapper.split(":")[0])+wrapper.split(":")[1],s,p,o);
+
+                GraphOperations gOp = new GraphOperations();
+                gOp.addTriple(prefixes.get(wrapper.split(":")[0])+wrapper.split(":")[1],s,p,o);
             });
         });
     }
