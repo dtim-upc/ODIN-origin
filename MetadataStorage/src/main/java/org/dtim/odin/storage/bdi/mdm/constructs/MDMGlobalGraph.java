@@ -3,14 +3,20 @@ package org.dtim.odin.storage.bdi.mdm.constructs;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Resource;
+import org.dtim.odin.storage.bdi.extraction.Namespaces;
 import org.dtim.odin.storage.db.jena.GraphOperations;
 import org.dtim.odin.storage.db.mongo.models.GlobalGraphModel;
 import org.dtim.odin.storage.db.mongo.repositories.GlobalGraphRepository;
-import org.dtim.odin.storage.model.Namespaces;
+
+import org.dtim.odin.storage.model.graph.RelationshipEdge;
 import org.dtim.odin.storage.model.metamodel.GlobalGraph;
 import org.dtim.odin.storage.parsers.OWLtoWebVOWL;
 import org.dtim.odin.storage.util.Utils;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
+import org.jgrapht.graph.SimpleDirectedGraph;
 import org.semarglproject.vocab.RDF;
 
 import java.util.ArrayList;
@@ -78,9 +84,6 @@ public class MDMGlobalGraph {
      * This method is to transform the Integrated Global Graph into MDM Global Graph i.e. Concepts, features etc...
      */
     private void constructGlobalGraph() {
-        Dataset ds = Utils.getTDBDataset();
-        ds.begin(ReadWrite.WRITE);
-
         //Create MDM Global Graph i.e. create a named graph in the TDB
         graphO.removeGraph(mdmGgIri);
 
@@ -103,7 +106,7 @@ public class MDMGlobalGraph {
 
         //Sergi added
         //This is to create artificial concepts grouping all equivalent features
-//        processEquivalentProperties(mdmGgIri);
+        processEquivalentProperties(mdmGgIri);
 
     }
 
@@ -187,6 +190,8 @@ public class MDMGlobalGraph {
                     String eqPropClass = (eqPropResourceIRI.get("x").toString().split(baseBDIOntologyIRI)[1]).split("/")[1];
                     //System.out.println("Class of Equivalent Property: " + eqPropClass);
 
+                    //Javier: This if doesn't work with more than 2 integrations since for a third integration will be:
+                    //http://www.BDIOntology.com/global/9f95ea875def4669839efb4f6e3f1a4a-a0759bbac21c4eaf9459eaf1dcf6d36b/Request_Country> :owl#equivalentProperty <http://www.BDIOntology.com/schema/UNData-population/Country
                     if (eqPropClass.equals(lastOneIsClassName)) {
                         //System.out.println("Done! - eqPropClass.equals(lastOneIsClassName)");
                         graphO.addTriple(mdmGgIri,classResource.toString(),GlobalGraph.HAS_FEATURE.val(),eqPropResourceIRI.getResource("x").toString());
@@ -202,13 +207,9 @@ public class MDMGlobalGraph {
                         ArrayList domains = new ArrayList();
                         String domainOfGlobalProperty = " SELECT * WHERE { GRAPH <" + bdiGgIri + "> { <" + propertyResourceIRI.get("property") + "> rdfs:domain ?domain. } }";
                         graphO.runAQuery(graphO.sparqlQueryPrefixes + domainOfGlobalProperty).forEachRemaining(triple -> {
-                            //System.out.print(triple.get("property") + "\t");
-                            //System.out.println(triple.get("domain") + "\t");
-                            domains.add(triple.get("domain"));
-                            //System.out.print(triple.get("range") + "\n");
-                            //mdmGlobalGraph.add(triple.getResource("property"), new PropertyImpl(RDF.TYPE), new ResourceImpl(GlobalGraph.FEATURE.val()));
-                        });
 
+                            domains.add(triple.get("domain"));
+                        });
                         if (domains.size() > 1) {
                             String eqPropClassIRI = org.dtim.odin.storage.bdi.extraction.Namespaces.Schema.val() + eqPropClass;
                             graphO.addTriple(mdmGgIri, eqPropClassIRI, GlobalGraph.HAS_FEATURE.val(), eqPropResourceIRI.get("x").toString());
@@ -271,26 +272,40 @@ public class MDMGlobalGraph {
 
         //Connect in a graph equivalent properties
         //each connected component will represent a concept
-//        Graph<String, RelationshipEdge> G = new SimpleDirectedGraph<>(RelationshipEdge.class);
-//
-//        graphO.runAQuery(graphO.sparqlQueryPrefixes + getEquivProperties).forEachRemaining(triple -> {
-//            System.out.println(triple.getResource("s").getURI() + " equivalent to "+triple.getResource("o").getURI());
-//            G.addVertex(triple.getResource("s").getURI());
-//            G.addVertex(triple.getResource("o").getURI());
-//            G.addEdge(triple.getResource("s").getURI(),triple.getResource("o").getURI(),
-//                    new RelationshipEdge(UUID.randomUUID().toString()));
-////            mdmGlobalGraph.add(triple.getResource("s"), new PropertyImpl(triple.get("p").toString()), triple.getResource("o"));
-//        });
-//        ConnectivityInspector<String, RelationshipEdge> c = new ConnectivityInspector<>(G);
-//        System.out.println("aaa");
-        /*c.connectedSets().forEach(s -> {
-            String concept = UUID.randomUUID().toString();
-            mdmGlobalGraph.add(new ResourceImpl(concept),new PropertyImpl(RDF.TYPE),  new ResourceImpl(GlobalGraph.CONCEPT.val()));
+        Graph<String, RelationshipEdge> G = new SimpleDirectedGraph<>(RelationshipEdge.class);
+
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + getEquivProperties).forEachRemaining(triple -> {
+            System.out.println(triple.getResource("s").getURI() + " equivalent to "+triple.getResource("o").getURI());
+            G.addVertex(triple.getResource("s").getURI());
+            G.addVertex(triple.getResource("o").getURI());
+            G.addEdge(triple.getResource("s").getURI(),triple.getResource("o").getURI(),
+                    new RelationshipEdge(UUID.randomUUID().toString()));
+//            mdmGlobalGraph.add(triple.getResource("s"), new PropertyImpl(triple.get("p").toString()), triple.getResource("o"));
+        });
+        ConnectivityInspector<String, RelationshipEdge> c = new ConnectivityInspector<>(G);
+        c.connectedSets().forEach(s -> {
+            String concept = Namespaces.G.val()+UUID.randomUUID().toString();
+            graphO.addTriple(mdmGgIri,concept,RDF.TYPE,GlobalGraph.CONCEPT.val());
+
+            String relation = Namespaces.G.val()+  UUID.randomUUID().toString();
             s.forEach(f -> {
-                mdmGlobalGraph.add(new ResourceImpl(concept),new PropertyImpl(GlobalGraph.HAS_FEATURE.val()),
-                        new ResourceImpl(f));
+
+                ResultSet rs = graphO.runAQuery("SELECT ?s WHERE  { GRAPH <" + mdmGgIri + "> { ?s <" + GlobalGraph.HAS_FEATURE.val() + ">  <" + f + ">  }}");
+                boolean found = false;
+                while (rs.hasNext()){
+                    graphO.addTriple(mdmGgIri,rs.next().get("s").asNode().getURI(),relation,concept);
+                    graphO.deleteTriplesWithObject(mdmGgIri,f);
+                    graphO.deleteTriplesWithSubject(mdmGgIri,f);
+                    found = true;
+                }
+
+                if(!found && f.contains(Namespaces.G.val())){
+                    graphO.addTriple(mdmGgIri,concept,GlobalGraph.HAS_FEATURE.val(),f);
+                    graphO.addTriple(mdmGgIri,f,RDF.TYPE,GlobalGraph.FEATURE.val());
+                }
             });
-        });*/
+        });
+
     }
 
     private String getClassNameFromIRI(String IRI) {

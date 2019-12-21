@@ -41,6 +41,8 @@ public class JenaConnection {
 
     public void close() {
         if(dataset != null){
+            if(dataset.isInTransaction())
+                dataset.commit();
             dataset.end();
             dataset.close();
             dataset = null;

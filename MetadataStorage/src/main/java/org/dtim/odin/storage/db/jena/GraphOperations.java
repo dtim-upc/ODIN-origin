@@ -153,11 +153,10 @@ public class GraphOperations {
 
     //rename to delete
     public void removeGraph(String iri){
-        if(ds.containsNamedModel(iri)){
             Txn.executeWrite(ds, ()-> {
                 ds.removeNamedModel(iri);
             });
-        }
+
     }
 
     public Model getGraph(String iri){
@@ -186,7 +185,7 @@ public class GraphOperations {
     public String selectTriplesFromGraphAsXML(String iri){
         Query SPARQL = selectQ.selectTriplesFromGraph(iri,null,null,null);
         ResultSet rs = runAQuery(SPARQL);
-        return ResultSetFormatter.asXMLString(rs);
+        return ResultSetFormatter.asText(rs);
     }
 
     public Boolean containsIRIAsSubject(String namedGraph, String subjectIRI){
@@ -303,8 +302,6 @@ public class GraphOperations {
     //////////////////////////////////////
 
     public void deleteTriples(String graphIRI,String subjectIRI, String predicateIRI, String objectIRI){
-//        RDFUtil.runAnUpdateQuery("DELETE WHERE { GRAPH <" + graphIRI + ">" +
-//                " {<"+subjectIRI+"> <"+predicateIRI+"> <"+objectIRI+">} }");
         Txn.executeWrite(ds, ()->{
             Model graph = ds.getNamedModel(graphIRI);
             graph.remove(new ResourceImpl(subjectIRI), new PropertyImpl(predicateIRI), new ResourceImpl(objectIRI));
@@ -408,14 +405,18 @@ public class GraphOperations {
     }
 
     public static ResultSet runAQuery(String sparqlQuery, Dataset ds) {
-        try (QueryExecution qExec = QueryExecutionFactory.create(QueryFactory.create(sparqlQuery), ds)) {
-            ResultSetRewindable results = ResultSetFactory.copyResults(qExec.execSelect());
-            qExec.close();
-            return results;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+
+        ResultSet resultSet = Txn.calculateRead(ds, ()-> {
+            try (QueryExecution qExec = QueryExecutionFactory.create(QueryFactory.create(sparqlQuery), ds)) {
+                ResultSetRewindable results = ResultSetFactory.copyResults(qExec.execSelect());
+                qExec.close();
+                return results;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }) ;
+        return resultSet;
     }
 
 
