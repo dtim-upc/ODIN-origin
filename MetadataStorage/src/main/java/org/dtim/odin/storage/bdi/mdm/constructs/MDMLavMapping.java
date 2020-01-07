@@ -34,6 +34,7 @@ public class MDMLavMapping {
     private static final Logger LOGGER = Logger.getLogger(MDMLavMapping.class.getName());
     private String mdmGlobalGraphIri;
     private String mdmGgId;
+    private String bdiGgIri;
     private JSONArray wrappersMongoInformation = new JSONArray();
     private List<String> wrappersCoveringGlobalGraph;
     private LAVMappingModel lavMapping;
@@ -53,9 +54,10 @@ public class MDMLavMapping {
     private Map<String, List<Tuple3<String, String, String>>> features = new HashMap<>();
     HashMap<String, String> nodesIds;
 
-    public MDMLavMapping(String mdmGlobalGraphIri, HashMap<String, String> nodesIds) {
+    public MDMLavMapping(String mdmGlobalGraphIri, HashMap<String, String> nodesIds,String bdiGgIri) {
         this.mdmGlobalGraphIri = mdmGlobalGraphIri;
         this.nodesIds = nodesIds;
+        this.bdiGgIri = bdiGgIri;
         run();
     }
 
@@ -240,7 +242,12 @@ public class MDMLavMapping {
         JSONArray graphicalGraphArray = new JSONArray();
 
         triples.forEach(triple -> {
-            if (triple.getSubject().getURI().contains(dataSourceSchemaIri) || triple.getObject().getURI().contains(dataSourceSchemaIri) || triple.getSubject().getURI().contains(Namespaces.G.val())) {
+            boolean containsGPrefix = false;
+            if(triple.getSubject().getURI().contains(Namespaces.G.val()))
+                containsGPrefix = isAlignmentFromDS(dataSourceSchemaIri,triple.getSubject().getURI(),bdiGgIri,mdmGlobalGraphIri);
+
+            if (triple.getSubject().getURI().contains(dataSourceSchemaIri) || triple.getObject().getURI().contains(dataSourceSchemaIri) || containsGPrefix) {
+
                 /*Avoiding other sources IRIs*/
                 if (!temp.containsKey(getSourceIRIFromIRI(triple.getObject().getURI()))) {
 
@@ -314,6 +321,37 @@ public class MDMLavMapping {
 
         //System.out.println(lavMappingSubGraph);
         LAVService.createLAVMappingSubgraph(lavMappingSubGraph.toJSONString());
+    }
+
+
+    private Boolean isAlignmentFromDS(String dataSourceSchemaIRI, String GIRI, String graphIRI, String mdmGlobalGraphIri){
+        Boolean flag = false;
+
+        List<String> triples = new ArrayList<>();
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + "SELECT ?o WHERE { GRAPH <" + graphIRI + "> { <"+GIRI+"> <"+Namespaces.owl.val()+"equivalentProperty> ?o . }}")
+                .forEachRemaining(res -> {
+                    triples.add(res.get("o").toString());
+        });
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + "SELECT ?s WHERE { GRAPH <" + graphIRI + "> { ?s <"+Namespaces.owl.val()+"equivalentProperty> <"+GIRI+"> . }}")
+                .forEachRemaining(res -> {
+                    triples.add(res.get("s").toString());
+        });
+
+        //for nodes generated to join the alignment with the dataSource
+        if(triples.size() == 0) {
+            graphO.runAQuery(graphO.sparqlQueryPrefixes + "SELECT ?s WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p <" + GIRI + "> . }}")
+                    .forEachRemaining(res -> {
+                        triples.add(res.get("s").toString());
+                    });
+        }
+        for (String ele : triples){
+           if(ele.contains(dataSourceSchemaIRI)){
+               //If at least one element matches the datasource schema iri means the GIRI belongs to that datasource.
+               flag = true;
+               break;
+           }
+        }
+        return flag;
     }
 
     private JSONObject createObject(String iri, String name, String namespace) {
