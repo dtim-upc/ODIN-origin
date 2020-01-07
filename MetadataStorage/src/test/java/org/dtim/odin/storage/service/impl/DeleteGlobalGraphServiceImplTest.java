@@ -260,7 +260,7 @@ public class DeleteGlobalGraphServiceImplTest {
 //     *----------------------------------*/
 //        Boolean flag = delSpy.deleteProperty(graphName,s,p,o);
 //        Assert.assertTrue(flag); //Verify method returns true when delete is successful
-//        ds.begin(ReadWrite.READ);
+//        ds.beginƒ
 //        //TODO: improve condition for assert
 //        Assert.assertTrue(ds.getNamedModel(graphName).size() ==2); //If delete is successful, size equals 2
 //        ds.end();

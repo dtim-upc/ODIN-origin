@@ -44,7 +44,7 @@ public class Conversion {
         LOGGER.info("Creating MDM Wrappers");
         new MDMWrapper(globalGraphInfo, mdmGlobalGraphIri);
         LOGGER.info("Creating MDM LAV Mappings including subgraphs covering");
-        new MDMLavMapping(mdmGlobalGraphIri, mdmGlobalGraph.getNodesIds());
+        new MDMLavMapping(mdmGlobalGraphIri, mdmGlobalGraph.getNodesIds(),globalGraphInfo.getAsString("schema_iri"));
     }
 
     /**
