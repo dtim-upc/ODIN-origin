@@ -5,7 +5,9 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
+import org.dtim.odin.storage.bdi.extraction.Namespaces;
 import org.dtim.odin.storage.db.jena.GraphOperations;
+import org.dtim.odin.storage.model.metamodel.GlobalGraph;
 import org.dtim.odin.storage.parsers.models.*;
 
 import javax.inject.Inject;
@@ -59,8 +61,8 @@ public class OWLtoWebVOWL {
 
         List<Triple> triples = new ArrayList<>();
         //TODO: (javier) create method to extract list
-        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + graphIRI + "> { ?s ?p ?o . FILTER NOT EXISTS {?s G:sameAs ?o .}} }").forEachRemaining(res -> {
-            triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(),
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + graphIRI + "> { ?s ?p ?o . FILTER NOT EXISTS {?s G:sameAs ?o .}  FILTER NOT EXISTS {  ?s ?p <"+Namespaces.sc.val() + "identifier>. }} }").forEachRemaining(res -> {
+                triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(),
                     new PropertyImpl(res.get("p").toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
         });
         /*Hiding the sameAs features from the Graphical Global Graph*/
@@ -88,7 +90,10 @@ public class OWLtoWebVOWL {
                 nodesId.put(triple.getSubject().getURI(), id);
                 //this check is to hide to triples like feature sameAs feature. Such features are not required because they are subsumed by the global iri feature.
                 if(!triplesHashMap.containsKey(triple)){
-                    nodes.add(new Nodes(id, getType(triple.getObject().getURI())));
+                    if(triple.getSubject().getURI().contains(Namespaces.G.val()) && triple.getObject().getURI().equals(GlobalGraph.FEATURE.val())) //URI comes from alignments
+                        nodes.add(new Nodes(id, prefix + ":Feature_ID"));
+                    else
+                        nodes.add(new Nodes(id, getType(triple.getObject().getURI())));
                     classA.add(new ClassAttribute(id, triple.getSubject().getURI(), getBaseIri(triple.getSubject().getURI()), getLastElem(triple.getSubject().getURI())));
                 }
                 i++;

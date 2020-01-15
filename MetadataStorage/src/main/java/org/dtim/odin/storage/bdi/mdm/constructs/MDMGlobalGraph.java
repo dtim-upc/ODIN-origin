@@ -312,6 +312,8 @@ public class MDMGlobalGraph {
                 if(!found && f.contains(Namespaces.G.val())){
                     graphO.addTriple(mdmGgIri,concept,GlobalGraph.HAS_FEATURE.val(),f);
                     graphO.addTriple(mdmGgIri,f,RDF.TYPE,GlobalGraph.FEATURE.val());
+                    //all shared features should be identifiers (FEATUREID)
+                    graphO.addTriple(mdmGgIri, f, Namespaces.rdfs.val() + "subClassOf", Namespaces.sc.val() + "identifier");
                 }
             });
         });

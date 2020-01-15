@@ -252,10 +252,10 @@ public class MDMLavMapping {
         temp.remove(dataSourceSchemaIri);
 
         List<Triple> triples = new ArrayList<>();
-        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p ?o . }}")
+        graphO.runAQuery(graphO.sparqlQueryPrefixes + " SELECT ?s ?p ?o WHERE { GRAPH <" + mdmGlobalGraphIri + "> { ?s ?p ?o .  FILTER NOT EXISTS {  ?s ?p <"+Namespaces.sc.val() + "identifier>. } }}")
                 .forEachRemaining(res -> {
             //System.out.println(res.get("s").toString() + "\t" + res.get("p").toString() + "\t" + res.get("o").toString());
-            triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(), new PropertyImpl(res.get("p").asResource().toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
+                    triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(), new PropertyImpl(res.get("p").asResource().toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
         });
         JSONObject lavMappingSubGraph = new JSONObject();
         JSONArray selectionArray = new JSONArray();
