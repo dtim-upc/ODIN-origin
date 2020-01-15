@@ -20,4 +20,8 @@ public class LAVsameAs {
     public void setAttribute(String attribute) {
         this.attribute = attribute;
     }
+
+    public String toString(){
+        return "FEATURE:" +feature+ "----- ATRIBUTE: "+attribute;
+    }
 }
