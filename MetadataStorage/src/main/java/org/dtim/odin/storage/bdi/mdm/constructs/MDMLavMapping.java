@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.dtim.odin.storage.bdi.extraction.Namespaces;
@@ -99,19 +101,39 @@ public class MDMLavMapping {
             String featureName = triple.get("f").toString();
             List<Tuple3<String, String, String>> sameAsfeatures = new ArrayList<>();
 
-            if (triple.get("o") != null)
-                sameAsfeatures.add(new Tuple3<>(getLastElementOfIRI(triple.get("o").toString()),
-                        getSourceFromIRI(triple.get("o").toString()), triple.get("o").toString()));
-
-            if (features.containsKey(featureName)) {
-                //System.out.println("Printing value of the key : " + features.get(featureName));
-                List<Tuple3<String, String, String>> tempList = features.get(featureName);
-                if (triple.get("o") != null)
-                    tempList.add(new Tuple3<>(getLastElementOfIRI(triple.get("o").toString()),
+            boolean exists = false;
+            ResultSet rs = graphO.runAQuery("SELECT ?f WHERE { GRAPH <"+bdiGgIri+"> { {<"+featureName+"> <"+Namespaces.owl.val()+"equivalentProperty> ?f} UNION { ?f <"+Namespaces.owl.val()+"equivalentProperty> <"+featureName+"> } } }");
+            while (rs.hasNext()) {
+                exists = true;
+                String newFeature = rs.next().get("f").toString();
+                if (triple.get("o") != null) {
+                    sameAsfeatures.add(new Tuple3<>(getLastElementOfIRI(newFeature),
                             getSourceFromIRI(triple.get("o").toString()), triple.get("o").toString()));
-                features.put(featureName, tempList);
-            } else {
-                features.put(featureName, sameAsfeatures);
+                }
+                if (features.containsKey(newFeature)) {
+                    List<Tuple3<String, String, String>> tempList = features.get(newFeature);
+                    tempList.add(new Tuple3<>(getLastElementOfIRI(newFeature),
+                                getSourceFromIRI(triple.get("o").toString()), triple.get("o").toString()));
+                    features.put(newFeature, tempList);
+                } else {
+                    features.put(newFeature, sameAsfeatures);
+                }
+            }
+            if (!exists) {
+                if (triple.get("o") != null)
+                    sameAsfeatures.add(new Tuple3<>(getLastElementOfIRI(triple.get("o").toString()),
+                            getSourceFromIRI(triple.get("o").toString()), triple.get("o").toString()));
+
+                if (features.containsKey(featureName)) {
+                    //System.out.println("Printing value of the key : " + features.get(featureName));
+                    List<Tuple3<String, String, String>> tempList = features.get(featureName);
+                    if (triple.get("o") != null)
+                        tempList.add(new Tuple3<>(getLastElementOfIRI(triple.get("o").toString()),
+                                getSourceFromIRI(triple.get("o").toString()), triple.get("o").toString()));
+                    features.put(featureName, tempList);
+                } else {
+                    features.put(featureName, sameAsfeatures);
+                }
             }
 
         });
