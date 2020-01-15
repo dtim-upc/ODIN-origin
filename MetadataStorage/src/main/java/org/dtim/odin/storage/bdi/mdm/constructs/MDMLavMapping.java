@@ -106,18 +106,16 @@ public class MDMLavMapping {
             while (rs.hasNext()) {
                 exists = true;
                 String newFeature = rs.next().get("f").toString();
-                if (triple.get("o") != null) {
-                    sameAsfeatures.add(new Tuple3<>(getLastElementOfIRI(newFeature),
-                            getSourceFromIRI(triple.get("o").toString()), triple.get("o").toString()));
-                }
-                if (features.containsKey(newFeature)) {
-                    List<Tuple3<String, String, String>> tempList = features.get(newFeature);
-                    tempList.add(new Tuple3<>(getLastElementOfIRI(newFeature),
-                                getSourceFromIRI(triple.get("o").toString()), triple.get("o").toString()));
-                    features.put(newFeature, tempList);
-                } else {
-                    features.put(newFeature, sameAsfeatures);
-                }
+
+                List<Tuple3<String, String, String>> tempList = new ArrayList<>();
+                if (features.containsKey(featureName))
+                    tempList = features.get(featureName);
+
+                tempList.add(new Tuple3<>(getLastElementOfIRI(newFeature),
+                        getSourceFromIRI(newFeature), newFeature));
+
+                features.put(featureName, tempList);
+
             }
             if (!exists) {
                 if (triple.get("o") != null)
