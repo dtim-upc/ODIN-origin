@@ -34,6 +34,12 @@ public class GraphOperations {
 
     private Dataset ds;
 
+    private static GraphOperations instance = new GraphOperations();
+
+    public static GraphOperations getInstance() {
+        return instance;
+    }
+
     public  GraphOperations() {
         ds = JenaConnection.getInstance().getTDBDataset();
     }

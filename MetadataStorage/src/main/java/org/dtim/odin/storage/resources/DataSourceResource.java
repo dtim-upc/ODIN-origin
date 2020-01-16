@@ -29,7 +29,7 @@ public class DataSourceResource {
 
     DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     DataSourceService dsService = new DataSourceService();
 

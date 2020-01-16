@@ -32,12 +32,10 @@ public class AdminResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response GET_admin_delete_all() {
         System.out.println("[GET /admin/deleteAll/");
-//        MongoClient client = Utils.getMongoDBClient();
-//        client.getDatabase(ConfigManager.getProperty("system_metadata_db_name")).drop();
-
         UtilsMongo.dropMongoDB();
         try {
             JenaConnection.getInstance().close();
+            JenaConnection.getInstance().getTDBDataset();
             FileUtils.deleteDirectory(new File(ConfigManager.getProperty("metadata_db_file")));
         } catch (IOException e) {
             e.printStackTrace();

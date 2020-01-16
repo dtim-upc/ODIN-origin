@@ -3,6 +3,8 @@ package org.dtim.odin.storage.resources;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import net.minidev.json.JSONObject;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
@@ -25,7 +27,7 @@ import java.util.UUID;
 @Path("metadataStorage")
 public class GraphResource {
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
     /**
      * Get the content of the artifact, i.e. the triples
      */
@@ -38,6 +40,30 @@ public class GraphResource {
 
         try{
             out = graphO.selectTriplesFromGraphAsXML(iri);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok("Error: "+e.toString()).build();
+        }
+
+        JSONObject res = new JSONObject();
+        res.put("rdf",out);
+        return Response.ok(res.toJSONString()).build();
+    }
+
+
+    /**
+     * Get the content of JENA TDB
+     */
+    @GET @Path("graph/all")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response GET_graph() {
+        System.out.println("[GET /graph/all");
+        String out = "";
+
+        try{
+            ResultSet rs = graphO.runAQuery("SELECT * WHERE {GRAPH ?g {?s ?p ?o.}}");
+            out = ResultSetFormatter.asText(rs);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok("Error: "+e.toString()).build();

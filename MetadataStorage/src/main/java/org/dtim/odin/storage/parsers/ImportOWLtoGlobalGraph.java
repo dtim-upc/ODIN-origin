@@ -21,7 +21,7 @@ public class ImportOWLtoGlobalGraph {
 
     GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     public void convert(String filePath, String name){
 

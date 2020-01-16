@@ -15,7 +15,7 @@ public class JenaConnection {
     public Dataset getTDBDataset() {
         if (dataset == null) {
             try {
-                dataset = TDBFactory.createDataset(ConfigManager.getProperty("metadata_db_path") + "/" +
+                dataset = TDBFactory.createDataset(ConfigManager.getProperty("metadata_db_path") + "_" +
                         ConfigManager.getProperty("metadata_db_name"));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -34,8 +34,9 @@ public class JenaConnection {
                 new Thread("app-shutdown-hook") {
                     @Override
                     public void run() {
+                        instance.close();
                         close();
-                        System.out.println("bye");
+                        System.out.println("Closed jena connection");
                     }});
     }
 

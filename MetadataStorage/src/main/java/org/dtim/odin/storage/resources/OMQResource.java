@@ -40,7 +40,7 @@ public class OMQResource {
 
     DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     @POST @Path("omq/fromGraphicalToSPARQL")
     @Consumes("text/plain")

@@ -30,13 +30,10 @@ public class GlobalGraphResource {
             "{} request finished with inputs: {} and return value: {} in {}ms";
     GlobalGraphValidator validator = new GlobalGraphValidator();
 
-//    @Inject
     GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-//    @Inject
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
-//    @Inject
     GlobalGraphService globalService = new GlobalGraphService();
 
     @ApiOperation(value = "Gets all global graphs registered",produces = MediaType.TEXT_PLAIN)

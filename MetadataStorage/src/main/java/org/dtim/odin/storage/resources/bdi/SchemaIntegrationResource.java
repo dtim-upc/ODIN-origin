@@ -27,7 +27,7 @@ public class SchemaIntegrationResource {
     private static final Logger LOGGER = Logger.getLogger(SchemaIntegrationResource.class.getName());
     private final SchemaIntegrationHelper schemaIntegrationHelper = new SchemaIntegrationHelper();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
     @GET
     @Path("getSchemaAlignments/{dataSource1_id}/{dataSource2_id}")
     @Consumes("text/plain")

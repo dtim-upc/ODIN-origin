@@ -17,7 +17,7 @@ import java.util.HashMap;
  */
 public class AlignmentAlgorithm {
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     private JSONObject basicInfo;
 

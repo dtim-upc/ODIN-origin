@@ -25,7 +25,7 @@ public class WrapperService {
 
     DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     LAVMappingService delLAV = new LAVMappingService();
 
