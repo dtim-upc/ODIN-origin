@@ -13,7 +13,7 @@ import java.util.List;
 
 public class ImportOWLtoWebVowl {
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     String prefix = "G";
     String namespace = "";

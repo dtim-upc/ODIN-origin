@@ -37,7 +37,7 @@ public class SchemaIntegrationHelper {
 
     DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
     public SchemaIntegrationHelper() {
     }
 

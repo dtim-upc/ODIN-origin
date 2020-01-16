@@ -30,7 +30,7 @@ public class DataSourcesResource {
 
     IntegratedDataSourcesRepository integratedDSR = new IntegratedDataSourcesRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     @GET
     @Path("bdiIntegratedDataSources/")

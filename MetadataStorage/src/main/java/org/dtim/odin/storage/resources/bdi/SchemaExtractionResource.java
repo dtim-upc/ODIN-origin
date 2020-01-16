@@ -35,7 +35,7 @@ public class SchemaExtractionResource {
 
     DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     @POST
     @Path("jsonSchema/")

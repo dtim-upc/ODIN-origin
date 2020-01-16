@@ -37,7 +37,7 @@ public class Utils {
         //TODO: (JAVIER) get rid of this code when finished persistence layer
         if (copyOfTheDataset == null) {
             try {
-                return TDBFactory.createDataset(ConfigManager.getProperty("metadata_db_path") + "/"/*"BolsterMetadataStorage"*/ +
+                return TDBFactory.createDataset(ConfigManager.getProperty("metadata_db_path") + "_"/*"BolsterMetadataStorage"*/ +
                         ConfigManager.getProperty("metadata_db_name")/*"BolsterMetadataStorage"*/);
             } catch (Exception e) {
                 e.printStackTrace();

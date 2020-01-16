@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class Conversion {
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     private static final Logger LOGGER = Logger.getLogger(Conversion.class.getName());
     //private JSONObject wrapper = new JSONObject();

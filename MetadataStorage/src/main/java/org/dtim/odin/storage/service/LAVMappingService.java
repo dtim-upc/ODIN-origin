@@ -28,8 +28,7 @@ public class LAVMappingService {
 
     GlobalGraphRepository globalGR = new GlobalGraphRepository();
 
-    GraphOperations graphO = new GraphOperations();
-
+    GraphOperations graphO = GraphOperations.getInstance();
     //delete operations
 
     public void delete(String LAVMappingID){
@@ -62,6 +61,7 @@ public class LAVMappingService {
 
     //create operations
 
+    //Create sameAs relations in the datasource graph of a wrapper.
     public JSONObject createLAVMappingMapsTo(String body){
         JSONObject objBody = (JSONObject) JSONValue.parse(body);
 

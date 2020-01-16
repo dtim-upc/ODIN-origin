@@ -22,7 +22,7 @@ public class MDMWrapper {
 
     WrapperService wrapperS = new WrapperService();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     private String mdmGgIri;
     private JSONObject globalGraphInfo;

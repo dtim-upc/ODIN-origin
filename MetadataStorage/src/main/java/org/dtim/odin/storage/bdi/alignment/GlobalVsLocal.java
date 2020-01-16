@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  */
 public class GlobalVsLocal {
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     private JSONObject dataSource1Info = new JSONObject();
     private JSONObject dataSource2Info = new JSONObject();

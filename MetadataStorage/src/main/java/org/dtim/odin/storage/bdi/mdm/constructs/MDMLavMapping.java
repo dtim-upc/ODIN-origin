@@ -48,7 +48,7 @@ public class MDMLavMapping {
 
     DataSourceRepository dataSourceR = new DataSourceRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     LAVMappingService LAVService = new LAVMappingService();
 

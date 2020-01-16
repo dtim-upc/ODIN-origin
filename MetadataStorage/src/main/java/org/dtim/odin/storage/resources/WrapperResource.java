@@ -38,7 +38,7 @@ public class WrapperResource {
 
     WrapperService wrapperS = new WrapperService();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     @GET
     @Path("wrapper/")

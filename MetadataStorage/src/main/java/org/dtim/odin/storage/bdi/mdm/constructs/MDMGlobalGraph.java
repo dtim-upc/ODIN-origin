@@ -32,7 +32,7 @@ public class MDMGlobalGraph {
 
     GlobalGraphRepository globalGraphR = new GlobalGraphRepository();
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     private String bdiGgIri = "";
     private String mdmGgIri = "";

@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class Wrapper extends RelationalOperator {
 
-    GraphOperations graphO = new GraphOperations();
+    GraphOperations graphO = GraphOperations.getInstance();
 
     private String wrapper;
 
