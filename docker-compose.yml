@@ -1,0 +1,37 @@
+version: "3.3"
+services:
+  mongo:
+    container_name: mongo
+    image: mongo
+    environment:
+      MONGO_INITDB_DATABASE: ODIN_MetadataStorage
+    ports:
+      - 27017:27017
+  metadata-frontend:
+    container_name: metadata-frontend
+    restart: always
+    build: ./MetadataFrontend
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongo
+      - metadata-storage
+  metadata-storage:
+    container_name: metadata-storage
+    restart: always
+    build: ./MetadataStorage
+    ports:
+      - 8082:8082
+    depends_on:
+      - mongo
+      - owl-service
+    volumes:
+      - /usr/src/app/MetadataStorage/Output/:/usr/src/app/MetadataStorage/Output/
+  owl-service:
+    container_name: owl2vowl
+    restart: always
+    build: ./OWLtoVOWLService
+    ports:
+      - 9090:9090
+    volumes:
+      - /usr/src/app/MetadataStorage/Output/:/usr/src/app/MetadataStorage/Output/
