@@ -44,7 +44,7 @@ public class Wrapper extends RelationalOperator {
 
     @Override
     public String toString() {
-        return "("+graphO.nn(wrapper)+")";
+        return this.wrapper/*"("+graphO.nn(wrapper)+")"*/;
     }
 
     public String inferSchema() throws Exception {
