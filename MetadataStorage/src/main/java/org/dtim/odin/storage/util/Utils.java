@@ -29,7 +29,10 @@ public class Utils {
         return SparkSession.builder()
                 .appName("parquetPreview")
                 .master("local[*]")
-                .config("spark.driver.bindAddress","localhost").getOrCreate();
+                .config("spark.driver.bindAddress","localhost")
+                .config("spark.driver.memory","471859200")
+                .config("spark.testing.memory", "471859200")
+                .getOrCreate();
     }
 
     public static Dataset copyOfTheDataset = null;

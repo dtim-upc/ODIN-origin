@@ -3,6 +3,7 @@
  */
 var formidable = require('formidable'),
     fs = require('fs'),
+    request = require('request'),
     config = require(__dirname + '/../config'),
     upload_path = config.FILES_PATH;
 
@@ -15,34 +16,12 @@ exports.uploadFile = function (req, res) {
         sql_JDBC = '';
     form.uploadDir = config.FILES_PATH;
 
-    // form.parse
-    /* form.parse(req, function (err, fields, files) {
-         //console.log(files)
-         console.log("form.parse ");
-         givenFileName = fields.givenName;
-         fileType = fields.givenType;
-         if (fields.sql_jdbc) {
-             console.log(fields.sql_jdbc);
-             sql_JDBC = fields.sql_jdbc;
-             uploadedFile.push({
-                 status: true,
-                 filename: givenFileName,
-                 type: fileType,
-                 filePath: sql_JDBC
-             });
-         }
-     });*/
-
     // Invoked when a file has finished uploading.
     form.on('file', function (name, file) {
-        //console.log(file);
         console.log("Inside form.on function");
         var filename = '';
-        // Check the file type, must be xml, json or csv
-        console.log(file.type);
         if (file.type === 'text/xml' || file.type === 'application/json' || file.type === 'application/vnd.ms-excel' || file.type == 'text/csv' ) {
             // Assign new file name
-
             filename = Date.now() + '-' + file.name;
 
             // Move the file with the new file name
@@ -80,7 +59,42 @@ exports.uploadFile = function (req, res) {
 
     // Parse the incoming form fields.
     form.parse(req, function (err, fields, files) {
-        res.status(200).json(uploadedFile);
+        var uploadedFileProcessed = [];
+        uploadedFile.forEach(function (obj) {
+            console.log(obj);
+            if (obj.hasOwnProperty('type')) {
+                console.log("***")
+                console.log(obj.type);
+                if(obj.type =="csv" || obj.type =="json" || obj.type == "xml"){
+
+                    const formData = { "file":  fs.createReadStream(obj.filePath)};
+                    request.post({url:config.METADATA_DATA_LAYER_URL + "dataSource/upload", formData: formData}, function optionalCallback(err, httpResponse, body) {
+                        if (err) {
+                            console.log("error uploading file: "+err)
+                            return console.error('upload failed:', err);
+                        }
+                        fs.unlink(obj.filePath, (err) => {
+                            if (err) {
+                                console.log("failed to delete local file from metadataFronend:"+err);
+                            }
+                        });
+                        obj.filePath = body; //update path using the one provided by metadatastoraqe
+                        uploadedFileProcessed.push(obj);
+                        console.log("Datasource upload successful, body is: "+body);
+                        console.log("Datasource upload successful, file path is: "+obj.filePath);
+                        res.status(200).json(uploadedFileProcessed);
+                    });
+                }else{
+                    uploadedFileProcessed.push(obj);
+                    res.status(200).json(uploadedFileProcessed);
+                }
+            } else {
+                uploadedFileProcessed.push(obj);
+                res.status(200).json(uploadedFileProcessed);
+            }
+
+        });
+
     });
 
     form.on('field', function (name, value) {

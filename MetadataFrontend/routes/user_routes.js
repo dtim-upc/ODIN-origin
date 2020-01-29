@@ -19,6 +19,9 @@ exports.postUser = function (req, res, next) {
         bcrypt.genSalt(10, function(err, salt) {
             bcrypt.hash(user_object.password, salt, function(err, hash) {
                 user_object.password = hash;
+                console.log("*********+");
+                console.log(config.METADATA_DATA_LAYER_URL + "users")
+                console.log("*********")
                 request.post({
                     url: config.METADATA_DATA_LAYER_URL + "users",
                     body: JSON.stringify(req.body)

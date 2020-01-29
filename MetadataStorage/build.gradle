@@ -42,7 +42,8 @@ shadowJar {
         //attributes 'Main-Class': 'org.dtim.odin.storage.experiments.ExperimentsRunner'
 
         //For experiments w.r.t. competitors
-        attributes 'Main-Class': 'org.dtim.odin.storage.experiments.ExperimentsRunnerCompetitors'
+        attributes 'Main-Class': 'org.dtim.odin.storage.ApacheMain'
+//        attributes 'Main-Class': 'org.dtim.odin.storage.experiments.ExperimentsRunnerCompetitors'
     }
     append 'META-INF/services/org.apache.jena.system.JenaSubsystemLifecycle'
 }

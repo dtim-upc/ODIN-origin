@@ -37,6 +37,15 @@ public class AdminResource {
             JenaConnection.getInstance().close();
             JenaConnection.getInstance().getTDBDataset();
             FileUtils.deleteDirectory(new File(ConfigManager.getProperty("metadata_db_file")));
+            FileUtils.deleteDirectory(new File(ConfigManager.getProperty("upload_path")));
+            FileUtils.deleteDirectory(new File(ConfigManager.getProperty("output_path")));
+
+            File file = new File(ConfigManager.getProperty("upload_path"));
+            boolean dirCreated = file.mkdir();
+
+            File file2 = new File(ConfigManager.getProperty("output_path"));
+            boolean dirCreated2 = file2.mkdir();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
