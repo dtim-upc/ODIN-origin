@@ -8,18 +8,20 @@ services:
     ports:
       - 27017:27017
   metadata-frontend:
+    image: javierfh1404/dtim_odin:MF-latest
     container_name: metadata-frontend
     restart: always
-    build: ./MetadataFrontend
+    # build: ./MetadataFrontend
     ports:
       - 3000:3000
     depends_on:
       - mongo
       - metadata-storage
   metadata-storage:
+    image: javierfh1404/dtim_odin:MS-latest
     container_name: metadata-storage
     restart: always
-    build: ./MetadataStorage
+    # build: ./MetadataStorage
     ports:
       - 8082:8082
     depends_on:
@@ -28,9 +30,10 @@ services:
     volumes:
       - /usr/src/app/MetadataStorage/Output/:/usr/src/app/MetadataStorage/Output/
   owl-service:
+    image: javierfh1404/dtim_odin:Owl-latest
     container_name: owl2vowl
     restart: always
-    build: ./OWLtoVOWLService
+    # build: ./OWLtoVOWLService
     ports:
       - 9090:9090
     volumes:
