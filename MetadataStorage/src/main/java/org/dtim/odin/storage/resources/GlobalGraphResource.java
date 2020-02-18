@@ -11,11 +11,15 @@ import org.dtim.odin.storage.db.mongo.repositories.GlobalGraphRepository;
 import org.dtim.odin.storage.db.mongo.utils.UtilsMongo;
 import org.dtim.odin.storage.parsers.ImportOWLtoGlobalGraph;
 import org.dtim.odin.storage.service.GlobalGraphService;
+import org.dtim.odin.storage.util.ConfigManager;
 import org.dtim.odin.storage.validator.GlobalGraphValidator;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.*;
 import java.util.logging.Logger;
 
 /**
@@ -46,6 +50,32 @@ public class GlobalGraphResource {
         LOGGER.info("[GET /GET_globalGraph/]");
         String json = UtilsMongo.serializeListJsonAsString(globalGraphR.findAll());
         return Response.ok(json).build();
+    }
+
+    @POST
+    @Path("globalGraph/upload")
+    @Consumes({MediaType.MULTIPART_FORM_DATA})
+    public Response uploadPdfFile(  @FormDataParam("file") InputStream fileInputStream,
+                                    @FormDataParam("file") FormDataContentDisposition fileMetaData) throws Exception {
+        System.out.println("[POST /globalGraph/upload]");
+        String UPLOAD_PATH = ConfigManager.getProperty("upload_path");
+        String fullPath = UPLOAD_PATH + fileMetaData.getFileName();
+        System.out.println("The file path is: "+fullPath);
+        try {
+            int read = 0;
+            byte[] bytes = new byte[1024];
+
+            OutputStream out = new FileOutputStream(new File(fullPath));
+            while ((read = fileInputStream.read(bytes)) != -1) {
+                out.write(bytes, 0, read);
+            }
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            System.out.println("ERROR: "+e);
+            throw new WebApplicationException("Error while uploading file. Please try again !!");
+        }
+        return Response.ok(fullPath).build();
     }
 
     @ApiOperation(value = "Gets the information related for the given globalgraphid",produces = MediaType.TEXT_PLAIN)
