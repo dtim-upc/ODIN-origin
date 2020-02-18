@@ -88,13 +88,6 @@ public class ImportOWLtoGlobalGraph {
         objGG.setGlobalGraphID(UUID.randomUUID().toString().replace("-",""));
         objGG.setDefaultNamespace(defaultNamespace);
         objGG.setNamedGraph(namedGraph);
-//        MongoClient client = Utils.getMongoDBClient();
-//        Document objGG = new Document("name", name);
-//        objGG.put("globalGraphID", UUID.randomUUID().toString().replace("-",""));
-
-//        objGG.put("defaultNamespace", defaultNamespace);
-//        objGG.put("namedGraph", namedGraph);
-
 
         ImportOWLtoWebVowl graphicalConverter = new ImportOWLtoWebVowl();
         graphicalConverter.setNamespace(defaultNamespace);
@@ -103,12 +96,9 @@ public class ImportOWLtoGlobalGraph {
         String graphicalG = "\" " + StringEscapeUtils.escapeJava(vowlJson) + "\"";
 
         objGG.setGraphicalGraph(graphicalG);
-//        objGG.put("graphicalGraph", graphicalG);
 
         globalGraphR.create(objGG);
-//        MongoCollections.getGlobalGraphCollection(client).insertOne(objGG);
-//        client.close();
-//
+
     }
 
 }

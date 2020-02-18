@@ -2,6 +2,8 @@ package org.dtim.odin.storage.parsers;
 
 import com.google.gson.Gson;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.dtim.odin.storage.db.jena.GraphOperations;
 import org.dtim.odin.storage.model.Namespaces;
 import org.dtim.odin.storage.model.metamodel.GlobalGraph;
@@ -54,7 +56,8 @@ public class ImportOWLtoWebVowl {
 
         List<Triple> triples = new ArrayList<>();
         graphO.runAQuery("SELECT ?s ?p ?o WHERE { GRAPH <" + graphIRI + "> { ?s ?p ?o } }").forEachRemaining(res -> {
-
+            triples.add(new Triple(new ResourceImpl(res.get("s").toString()).asNode(),
+                    new PropertyImpl(res.get("p").toString()).asNode(), new ResourceImpl(res.get("o").toString()).asNode()));
         });
 
         List<Nodes> nodes = new ArrayList<>();

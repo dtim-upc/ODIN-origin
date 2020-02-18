@@ -161,13 +161,28 @@ exports.postImport = function (req, res, next) {
     });
 
     form.parse(req, function (err, fields, files) {
-        console.log(files)
-        request.post({
-                    url: config.METADATA_DATA_LAYER_URL + "globalGraph/import",
-                    body:JSON.stringify(resultForm)
-        }, function done(err, results) {
-            fs.unlinkSync(resultForm.path)
-            res.status(200).json("ok");
+        const formData = {
+            // Pass data via Streams
+            "file":  fs.createReadStream(resultForm.path)
+        };
+        request.post({url:config.METADATA_DATA_LAYER_URL + "globalGraph/upload", formData: formData}, function optionalCallback(err, httpResponse, body) {
+            if (err) {
+                return console.error('upload failed:', err);
+            }
+            var pathFront = resultForm.path
+            resultForm.path = body;
+            console.log("GlobalGraph upload successful, file path is: "+resultForm.path);
+            request.post({
+                url: config.METADATA_DATA_LAYER_URL + "globalGraph/import",
+                body:JSON.stringify(resultForm)
+            }, function done(err, results) {
+                fs.unlink(pathFront, (err) => {
+                    if (err) {
+                        console.log("failed to delete local file from frontend:"+err);
+                    }
+                });
+                res.status(200).json("ok");
+            });
         });
     });
 
