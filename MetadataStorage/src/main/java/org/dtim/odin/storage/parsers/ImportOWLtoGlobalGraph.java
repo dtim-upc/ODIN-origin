@@ -1,5 +1,7 @@
 package org.dtim.odin.storage.parsers;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -13,9 +15,7 @@ import org.dtim.odin.storage.db.mongo.repositories.GlobalGraphRepository;
 import org.dtim.odin.storage.model.Namespaces;
 import org.dtim.odin.storage.model.metamodel.GlobalGraph;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ImportOWLtoGlobalGraph {
 
@@ -29,6 +29,10 @@ public class ImportOWLtoGlobalGraph {
         model.read(filePath, "RDF/XML") ;
 
         List<String> features = new ArrayList<>();
+        Set<String> objectProperties = Sets.newHashSet();
+        HashMap<String,String> allDomain = Maps.newHashMap();
+        HashMap<String,String> allRange = Maps.newHashMap();
+
         Model globalGraphModel = ModelFactory.createDefaultModel();
         String defaultNamespace = "";
 
@@ -64,12 +68,35 @@ public class ImportOWLtoGlobalGraph {
                 features.add(t.getSubject().getURI());
                 globalGraphModel.add(new ResourceImpl(t.getSubject().getURI()), new PropertyImpl( Namespaces.rdf.val() + "type"), new ResourceImpl(GlobalGraph.FEATURE.val()));
             }
+
+            //Object properties
+            if (t.getPredicate().getURI().equals(Namespaces.rdf.val() + "type") &&
+                    t.getObject().getURI().equals(Namespaces.owl.val()+"ObjectProperty")) {
+                objectProperties.add(t.getSubject().getURI());
+                globalGraphModel.add(new ResourceImpl(t.getSubject().getURI()),
+                        new PropertyImpl( Namespaces.rdf.val() + "type"), new ResourceImpl(GlobalGraph.HAS_RELATION.val()));
+            }
+
+            //All domains
+            if (t.getPredicate().getURI().equals(Namespaces.rdfs.val()+"domain"))
+                allDomain.put(t.getSubject().getURI(),t.getObject().getURI());
+            //All ranges
+            if (t.getPredicate().getURI().equals(Namespaces.rdfs.val()+"range"))
+                allRange.put(t.getSubject().getURI(),t.getObject().getURI());
         }
 
         //connect features with concepts
         triples.forEach(t -> {
             if(features.contains(t.getSubject().getURI())){
                 globalGraphModel.add(new ResourceImpl(t.getObject().getURI()), new PropertyImpl( GlobalGraph.HAS_FEATURE.val()), new ResourceImpl(t.getSubject().getURI()));
+            }
+        });
+
+        //process concept relationships
+        objectProperties.forEach(op -> {
+            if (allDomain.containsKey(op) && allRange.containsKey(op)) {
+                globalGraphModel.add(new ResourceImpl(allDomain.get(op)),
+                        new PropertyImpl( op ), new ResourceImpl(allRange.get(op)));
             }
         });
 
