@@ -5,7 +5,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.unix4j.Unix4j;
 import upc.AlgorithmExecutor;
 
 import java.io.BufferedReader;
