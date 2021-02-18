@@ -202,7 +202,9 @@ public class QueryRewriting_EdgeBased {
 
     private static ConjunctiveQuery findJoins(ConjunctiveQuery CQ_A, ConjunctiveQuery CQ_B) {
         Set<String> IDa = Sets.newHashSet();
-        CQ_A.getWrappers().forEach(w -> IDa.addAll(coveredIDsPerWrapperInQuery.get(w)));
+        CQ_A.getWrappers().forEach(w -> {
+            IDa.addAll(coveredIDsPerWrapperInQuery.get(w));
+        });
 
         Set<String> IDb = Sets.newHashSet();
         CQ_B.getWrappers().forEach(w -> IDb.addAll(coveredIDsPerWrapperInQuery.get(w)));

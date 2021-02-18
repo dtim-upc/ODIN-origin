@@ -19,6 +19,8 @@ public class TestUtils {
     public static void deleteTDB() {
         try {
             FileUtils.deleteDirectory(new File("/home/snadal/UPC/Projects/ODIN/MetadataStorage/ODIN_TDB"));
+            FileUtils.deleteDirectory(new File("/home/snadal/UPC/Projects/ODIN/MetadataStorage_ODIN_TDB"));
+
         } catch (IOException e) {
             e.printStackTrace();
         }

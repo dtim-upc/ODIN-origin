@@ -53,4 +53,19 @@ public class DatalogQuery {
         return query;
     }
 
+    public String toGraalString(int pos) {
+        String idx = "";
+        if (pos != -1) {
+            idx = "[R"+pos+"] ";
+        }
+        String headName = (String)head.keySet().toArray()[0];
+        String query = idx +
+                body.keySet().stream().map(c -> toRelationName(c)+
+                    "("+body.get(c).stream().map(a->toAttributeName(a)).sorted().collect(Collectors.joining(","))+")").
+                    collect(Collectors.joining(",")) + " :- "
+                + headName+"("+head.get(headName).stream().map(a->toAttributeName(a)).sorted()
+                                .collect(Collectors.joining(","))+")" + ".\n";
+        return query;
+    }
+
 }

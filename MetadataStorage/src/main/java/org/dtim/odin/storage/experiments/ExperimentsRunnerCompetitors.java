@@ -1,5 +1,6 @@
 package org.dtim.odin.storage.experiments;
 
+import com.clearspring.analytics.util.Lists;
 import com.google.common.collect.Sets;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
@@ -15,17 +16,18 @@ import org.dtim.odin.storage.util.Tuple2;
 import org.dtim.odin.storage.util.Utils;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
 public class ExperimentsRunnerCompetitors {
-
+//50 5 2 8 2 1 1
     private static int CLIQUE_SIZE = 50;
-    private static int UPPER_BOUND_FEATURES_IN_G = 15; //How many features at most per concept (excluding ID)
+    private static int UPPER_BOUND_FEATURES_IN_G = 3; //How many features at most per concept (excluding ID)
 
-    private static int N_EDGES_IN_QUERY = 2; //The number of edges in G computed as a subgraph of the clique
-    private static int N_WRAPPERS = 4;
-    private static int N_EDGES_COVERED_BY_WRAPPERS = 1;
+    private static int N_EDGES_IN_QUERY = 6; //The number of edges in G computed as a subgraph of the clique
+    private static int N_WRAPPERS = 10;
+    private static int N_EDGES_COVERED_BY_WRAPPERS = 2;
 
     private static float COVERED_FEATURES_QUERY = 1f; //Probability that a query includes a feature
     private static float COVERED_FEATURES_WRAPPER = 1f; //Probability that a wrapper includes a feature
@@ -47,7 +49,7 @@ public class ExperimentsRunnerCompetitors {
         }
 
         ApacheMain.configPath = basePath + "MetadataStorage/config.sergi.properties";
-        //TestUtils.deleteTDB();
+        TestUtils.deleteTDB();
         Map<String, String> prefixes = TestUtils.populatePrefixes(basePath + "datasets/scenarios/SIGMOD_CQ/prefixes.txt");
         TestUtils.populateTriples("http://www.essi.upc.edu/~snadal/SIGMOD_ontology", basePath + "datasets/scenarios/SIGMOD_CQ/metamodel.txt", prefixes);
 
@@ -80,21 +82,51 @@ public class ExperimentsRunnerCompetitors {
             //System.out.println("Your wrapper is");W_withFeatures.printAsWebGraphViz();System.out.println("");
             ExperimentsGenerator.registerWrapper(W_withFeatures,"http://www.essi.upc.edu/~snadal/SIGMOD_ontology");
         }
-
+/*
         long a = System.currentTimeMillis();
         Set<String> corecoverRewritings = DatalogExperimentsRunner.runCoreCover(DatalogConverter.minimizeDatalog(datalogQueries));
         long b = System.currentTimeMillis();
         //edges in query; number of covering wrappers;
         System.out.println("CoreCover;"+UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
                 ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+corecoverRewritings.size()+";"+(b-a));
+*/
+        // Generate output for MiniCon
+        DatalogExperimentsRunner.runMiniCon(DatalogConverter.minimizeDatalog(datalogQueries));
+        // Generate output for Graal
+        DatalogExperimentsRunner.runGraal(DatalogConverter.minimizeDatalog(datalogQueries));
+        //Run ours
+        Dataset T = Utils.getTDBDataset();
+        T.begin(ReadWrite.READ);
+        long a = System.currentTimeMillis();
+        Tuple2<Integer, Set<ConjunctiveQuery>> CQs = QueryRewriting_EdgeBased.rewriteToUnionOfConjunctiveQueries
+                (QueryRewriting_EdgeBased.parseSPARQL
+                        (ExperimentsGenerator.convertToSPARQL(Q_withFeatures,prefixes), T), T);
+        long b = System.currentTimeMillis();
+        //edges in query; number of covering wrappers;
+        System.out.println(UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
+                ";"+COVERED_FEATURES_WRAPPER+";"+CQs._1+";"+CQs._2.size()+";"+(b-a));
+
+        //System.out.println(CQs);
+
+        T.end();
+        T.close();
+
+
+
         /*
-        a = System.currentTimeMillis();
-        Set<String> miniconRewritings = DatalogExperimentsRunner.runMiniCon(DatalogConverter.minimizeDatalog(datalogQueries));
-        b = System.currentTimeMillis();
+        long a = System.currentTimeMillis();
+        DatalogExperimentsRunner.runGraal(DatalogConverter.minimizeDatalog(datalogQueries));
+
+
+        Set<String> rewritings = DatalogExperimentsRunner.runMiniCon(DatalogConverter.minimizeDatalog(datalogQueries));
+        //Set<String> rewritings = DatalogExperimentsRunner.runGraal(DatalogConverter.minimizeDatalog(datalogQueries));
+        long b = System.currentTimeMillis();
         //edges in query; number of covering wrappers;
         System.out.println("MiniCon;"+UPPER_BOUND_FEATURES_IN_G+";"+N_EDGES_IN_QUERY+";"+N_WRAPPERS+";"+N_EDGES_COVERED_BY_WRAPPERS+";"+COVERED_FEATURES_QUERY+
-                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+miniconRewritings.size()+";"+(b-a));
-        */
+                ";"+COVERED_FEATURES_WRAPPER+";"+"1"+";"+rewritings.size()+";"+(b-a));
+
+         */
+
 
     }
 }
